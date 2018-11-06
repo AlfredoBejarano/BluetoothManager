@@ -28,4 +28,13 @@ interface DeviceDao {
      */
     @Query("SELECT * FROM device_table ORDER BY created_at ASC")
     fun read(): LiveData<List<Device>>
+
+    @Query("SELECT * FROM device_table WHERE synchronized = 0 ORDER BY created_at ASC")
+    fun readUnSync(): List<Device>
+
+    /**
+     * Nukes the device_table, deletes everything.
+     */
+    @Query("DELETE FROM device_table")
+    fun deleteAll()
 }

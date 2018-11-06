@@ -30,5 +30,6 @@ data class Device(
     @Expose
     @ColumnInfo(name = "created_at")
     @SerializedName("created_at")
-    val createdAt: String
+    val createdAt: String,
+    var synchronized: Boolean
 )

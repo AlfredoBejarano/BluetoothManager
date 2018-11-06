@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import java.text.SimpleDateFormat
 import java.util.*
@@ -48,7 +49,19 @@ class DeviceRepository
      * **Note** This function **IS NOT THREAD SAFE**, it has to be executed in a
      * worker thread to prevent network in UI thread exceptions.
      */
-    fun storeDeviceInCloud(device: Device) = service.addDevice(device)
+    fun storeDevice(device: Device) {
+        // Insert the device locally.
+        dao.insertOrUpdate(device)
+        // Attempt to store it in the cloud.
+        service.addDevice(device).also {
+            it.value?.let { addedDevice ->
+                // If the device got stored remotely successfully, report it as synchronized.
+                addedDevice.synchronized = true
+                // Update the device locally.
+                dao.insertOrUpdate(addedDevice)
+            }
+        }
+    }
 
     /**
      * Reads a list of devices from the server, if a cache is valid, it gets fetched
@@ -58,11 +71,9 @@ class DeviceRepository
      * prevent ANR errors, Database in UI thread exceptions and Network in UI exceptions.
      */
     fun fetchDevices() = if (isCacheValid()) {
-        dao.read()
+        dao.read() // Read the cached devices
     } else {
-        readDevicesFromServer().also {
-            generateCacheTimeStamp()
-        }
+        refreshCache() // Refresh the cache.
     }
 
     /**
@@ -94,17 +105,20 @@ class DeviceRepository
                     } else {
                         0
                     }
-                    // Add the device to the list.
-                    deviceList.add(
-                        Device(
-                            name = it.name,
-                            strength = strength,
-                            address = it.address,
-                            createdAt = getCurrentTimeStamp()
-                        )
+                    // Create a new device.
+                    val device = Device(
+                        name = it.name,
+                        strength = strength,
+                        address = it.address,
+                        synchronized = false,
+                        createdAt = getCurrentTimeStamp()
                     )
+                    // Add the device to the list.
+                    deviceList.add(device)
                     // Report the new list value to the LiveData object.
                     devices.postValue(deviceList)
+                    // Sync the device to the cloud.
+                    storeDevice(device)
                 }
             }
             // Read the device RSSI.
@@ -112,6 +126,40 @@ class DeviceRepository
         }
         // Return the LiveData object for observation.
         return devices
+    }
+
+    /**
+     * Invalidates the local cache and retrieves the list of devices.
+     */
+    fun refreshCache(): LiveData<List<Device>> {
+        invalidateCache() // Invalidate the local cache.
+        return readDevicesFromServer().also {
+            generateCacheTimeStamp() // Read the devices from the cloud, And generate the new cache timestamp.
+        }
+    }
+
+    /**
+     * Retrieves all the un synced devices from the
+     * local storage and reports them to the cloud.
+     *
+     * **Note** This function **IS NOT THREAD SAFE**, so prevent using it as is,
+     * execute it in a worker thread to prevent crashes and exceptions.
+     */
+    fun synchronizeDevices() = dao.readUnSync().forEach {
+        storeDevice(it)
+    }
+
+    /**
+     * Clears the database table and sets the timestamp to -1, so the next time
+     * the cache gets verified it returns as invalid.
+     *
+     * @see isCacheValid
+     */
+    private fun invalidateCache() = with(sharedPreferences.edit()) {
+        this.putLong(CACHE_EXPIRATION_KEY, -1) // Set the cache timestamp as -1.
+        this.apply() // Apply the changes.
+    }.also {
+        dao.deleteAll() // Clear the devices table.
     }
 
     /**
