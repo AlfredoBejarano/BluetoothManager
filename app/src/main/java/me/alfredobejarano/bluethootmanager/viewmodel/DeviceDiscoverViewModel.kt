@@ -20,6 +20,7 @@ import javax.inject.Inject
  **/
 class DeviceDiscoverViewModel
 @Inject constructor(private val repo: DeviceRepository) : ViewModel() {
+    var savedDevice = MutableLiveData<Device>()
     var devices = MutableLiveData<List<Device>>()
 
     /**
@@ -28,7 +29,16 @@ class DeviceDiscoverViewModel
      * the [devices] property.
      */
     fun readBondedDevices() = runOnIOThread {
-        devices = repo.findBondedDevices()
+        val bonded = repo.findBondedDevices().value
+        val list = devices.value as MutableList?
+        // If the list is not empty, add the bonded devices to it.
+        list?.let {
+            it.addAll(bonded ?: mutableListOf())
+            devices.postValue(it) // Notify the change.
+        } ?: run {
+            // If the value is null, post the bonded devices as its value.
+            devices.postValue(bonded)
+        }
     }
 
     /**
@@ -39,7 +49,7 @@ class DeviceDiscoverViewModel
      */
     fun reportFoundDevice(data: Intent) = runOnIOThread {
         // Retrieve the list of devices from the LiveData object as a MutableList.
-        val deviceList = devices.value as MutableList?
+        val deviceList = devices.value as MutableList? ?: mutableListOf()
         // Get the found device from the data.
         val foundDevice = data.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
         // If the found device is not null, proceed to add it to the list.
@@ -55,9 +65,14 @@ class DeviceDiscoverViewModel
                 createdAt = repo.getCurrentTimeStamp()
             )
             // Add it to the mutable list.
-            deviceList?.add(device)
-            // Report the value changes to the LiveData object.
-            devices.postValue(deviceList)
+            (devices.value as MutableList?)?.let { value ->
+                // If the devices list value has a value now, add all the elements.
+                value.addAll(deviceList)
+                devices.postValue(value)
+            } ?: run {
+                // If the value is null, set it with the device list.
+                devices.postValue(deviceList)
+            }
         }
     }
 
@@ -67,7 +82,7 @@ class DeviceDiscoverViewModel
      * @param device The device being stored.
      */
     fun saveDevice(device: Device) = runOnIOThread {
-        repo.storeDevice(device)
+        savedDevice.postValue(repo.storeDevice(device).value)
     }
 
     /**
