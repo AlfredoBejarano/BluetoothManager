@@ -60,7 +60,7 @@ class DeviceDiscoverViewModel
             val device = Device(
                 name = it.name,
                 address = it.address,
-                synchronized = false,
+                syncState = false,
                 strength = strength.toInt(),
                 createdAt = repo.getCurrentTimeStamp()
             )

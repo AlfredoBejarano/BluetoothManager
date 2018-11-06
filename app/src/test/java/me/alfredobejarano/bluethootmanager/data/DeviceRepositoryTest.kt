@@ -74,7 +74,7 @@ class DeviceRepositoryTest {
             .thenReturn(mockServiceResponse)
         // Store the mock device.
         testRepository.storeDevice(mockDevice)
-        // Verify that the dao inserted the device and then it got updated, as it got synchronized.
+        // Verify that the dao inserted the device and then it got updated, as it got syncState.
         verify(mockDeviceDao, times(2)).insertOrUpdate(mockDevice)
         // Verify that the device was added.
         verify(mockDeviceService).addDevice(mockDevice)
@@ -224,7 +224,7 @@ class DeviceRepositoryTest {
         // Sync the devices.
         testRepository.synchronizeDevices()
         // Assert that the device sync status is now true.
-        assert(mockDevice.synchronized)
+        assert(mockDevice.syncState)
     }
 
     /**

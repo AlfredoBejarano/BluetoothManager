@@ -55,8 +55,8 @@ class DeviceRepository
         // Attempt to store it in the cloud.
         return service.addDevice(device).also {
             it.value?.let { addedDevice ->
-                // If the device got stored remotely successfully, report it as synchronized.
-                addedDevice.synchronized = true
+                // If the device got stored remotely successfully, report it as syncState.
+                addedDevice.syncState = true
                 // Update the device locally.
                 dao.insertOrUpdate(addedDevice)
             }
@@ -112,7 +112,7 @@ class DeviceRepository
                         name = it?.name ?: "",
                         strength = strength,
                         address = it?.address ?: "",
-                        synchronized = true,
+                        syncState = true,
                         createdAt = getCurrentTimeStamp()
                     )
                     // Add the device to the list.

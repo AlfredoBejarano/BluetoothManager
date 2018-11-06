@@ -1,6 +1,7 @@
 package me.alfredobejarano.bluethootmanager.data
 
 import androidx.lifecycle.LiveData
+import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -14,6 +15,7 @@ import androidx.room.Query
  * @since November 06, 2018 - 09:55
  * @version 1.0
  **/
+@Dao
 interface DeviceDao {
     /**
      * Inserts a device into the database, if it already exists
@@ -29,7 +31,10 @@ interface DeviceDao {
     @Query("SELECT * FROM device_table ORDER BY created_at ASC")
     fun read(): LiveData<List<Device>>
 
-    @Query("SELECT * FROM device_table WHERE synchronized = 0 ORDER BY created_at ASC")
+    /**
+     * Retrieves all the un synced devices stored locally.
+     */
+    @Query("SELECT * FROM device_table WHERE sync_state = 0 ORDER BY created_at ASC")
     fun readUnSync(): List<Device>
 
     /**

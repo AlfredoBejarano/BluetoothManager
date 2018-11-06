@@ -18,18 +18,21 @@ import com.google.gson.annotations.SerializedName
 data class Device(
     @Expose
     @SerializedName("name")
-    val name: String,
+    var name: String,
     @Expose
     @SerializedName("strength")
-    val strength: Int,
+    var strength: Int,
     @Expose
     @ColumnInfo(name = "pk")
     @SerializedName("address")
     @PrimaryKey(autoGenerate = false)
-    val address: String,
+    var address: String,
     @Expose
     @ColumnInfo(name = "created_at")
     @SerializedName("created_at")
-    val createdAt: String,
-    var synchronized: Boolean
-)
+    var createdAt: String,
+    @ColumnInfo(name = "sync_state")
+    var syncState: Boolean
+) {
+    constructor() : this("", 0, "", "", true)
+}
