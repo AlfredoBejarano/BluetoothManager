@@ -49,11 +49,11 @@ class DeviceRepository
      * **Note** This function **IS NOT THREAD SAFE**, it has to be executed in a
      * worker thread to prevent network in UI thread exceptions.
      */
-    fun storeDevice(device: Device) {
+    fun storeDevice(device: Device): LiveData<Device> {
         // Insert the device locally.
         dao.insertOrUpdate(device)
         // Attempt to store it in the cloud.
-        service.addDevice(device).also {
+        return service.addDevice(device).also {
             it.value?.let { addedDevice ->
                 // If the device got stored remotely successfully, report it as synchronized.
                 addedDevice.synchronized = true
@@ -105,12 +105,14 @@ class DeviceRepository
                     } else {
                         0
                     }
-                    // Create a new device.
+                    // Create a new device, set is sync state as true to prevent the
+                    // app from store it when the internet status changes and the user
+                    // is not wanting to store it.
                     val device = Device(
                         name = it.name,
                         strength = strength,
                         address = it.address,
-                        synchronized = false,
+                        synchronized = true,
                         createdAt = getCurrentTimeStamp()
                     )
                     // Add the device to the list.
@@ -205,7 +207,7 @@ class DeviceRepository
     /**
      * Retrieves the system date and formats it.
      */
-    private fun getCurrentTimeStamp(): String = synchronized(this) {
+    fun getCurrentTimeStamp(): String = synchronized(this) {
         // Synchronize the execution of this function.
         // Create a SimpleDateFormat object.
         val formatter = SimpleDateFormat(TIMESTAMP_FORMAT, Locale.getDefault())
