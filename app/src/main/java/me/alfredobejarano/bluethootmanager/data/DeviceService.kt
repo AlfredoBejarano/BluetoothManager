@@ -1,6 +1,7 @@
 package me.alfredobejarano.bluethootmanager.data
 
 import androidx.lifecycle.LiveData
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 
@@ -27,5 +28,5 @@ interface DeviceService {
      * "created_at" property updated.
      */
     @POST("add/")
-    fun addDevice(): LiveData<Device>
+    fun addDevice(@Body device: Device): LiveData<Device>
 }
