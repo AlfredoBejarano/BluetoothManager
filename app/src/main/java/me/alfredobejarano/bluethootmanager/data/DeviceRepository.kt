@@ -135,9 +135,7 @@ class DeviceRepository
      */
     fun refreshCache(): LiveData<List<Device>> {
         invalidateCache() // Invalidate the local cache.
-        return readDevicesFromServer().also {
-            generateCacheTimeStamp() // Read the devices from the cloud, And generate the new cache timestamp.
-        }
+        return readDevicesFromServer()
     }
 
     /**
@@ -187,7 +185,13 @@ class DeviceRepository
      * **Note** This function **IS NOT THREAD SAFE**, it has to be executed in a
      * worker thread to prevent network in UI thread exceptions.
      */
-    private fun readDevicesFromServer() = service.fetchDevices()
+    private fun readDevicesFromServer() = service.fetchDevices().also {
+        it.value?.let {
+            generateCacheTimeStamp() // Read the devices from the cloud, And generate the new cache timestamp.
+        } ?: run {
+            (it as MutableLiveData).postValue(dao.read().value)
+        }
+    }
 
     /**
      * Checks if the stored cache has not expired.

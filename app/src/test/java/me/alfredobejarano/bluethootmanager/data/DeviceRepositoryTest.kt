@@ -128,9 +128,16 @@ class DeviceRepositoryTest {
      */
     @Test
     fun fetchDevices_cacheInvalid() {
+        val mockResult = mock(LiveData::class.java) as LiveData<List<Device>>
         // Return true when asked if the mock preferences contains the cache timestamp.
         `when`(mockSharedPreferences.contains(CACHE_EXPIRATION_KEY))
             .thenReturn(false)
+        // When the service gets called for fetching devices, return the mock result.
+        `when`(mockDeviceService.fetchDevices())
+            .thenReturn(mockResult)
+        // When the result value gets requested, return an empty list.
+        `when`(mockResult.value)
+            .thenReturn(listOf())
         // Fetch the devices.
         testRepository.fetchDevices()
         // Assert that the preferences were edited, first invalidating the timestamp and then updating it.
@@ -179,6 +186,13 @@ class DeviceRepositoryTest {
      */
     @Test
     fun refreshCache() {
+        val mockResult = mock(LiveData::class.java) as LiveData<List<Device>>
+        // When the service gets called for fetching devices, return the mock result.
+        `when`(mockDeviceService.fetchDevices())
+            .thenReturn(mockResult)
+        // When the result value gets requested, return an empty list.
+        `when`(mockResult.value)
+            .thenReturn(listOf())
         // Refresh the cache.
         testRepository.refreshCache()
         // The cache is updated two times, when invalidated and when fetched again.
