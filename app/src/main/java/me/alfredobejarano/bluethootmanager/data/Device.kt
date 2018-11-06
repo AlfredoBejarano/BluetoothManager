@@ -28,6 +28,7 @@ data class Device(
     @PrimaryKey(autoGenerate = false)
     val address: String,
     @Expose
+    @ColumnInfo(name = "created_at")
     @SerializedName("created_at")
     val createdAt: String
 )
