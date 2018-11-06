@@ -36,7 +36,7 @@ class DeviceRepository
         /**
          * Constant that defines the key of a cache stored in the SharedPreferences.
          */
-        private const val CACHE_EXPIRATION_KEY = "cacheInMillis"
+        internal const val CACHE_EXPIRATION_KEY = "cacheInMillis"
         /**
          * Constant that describes the format of the created_at timestamp for a device.
          */
@@ -109,9 +109,9 @@ class DeviceRepository
                     // app from store it when the internet status changes and the user
                     // is not wanting to store it.
                     val device = Device(
-                        name = it.name,
+                        name = it?.name ?: "",
                         strength = strength,
-                        address = it.address,
+                        address = it?.address ?: "",
                         synchronized = true,
                         createdAt = getCurrentTimeStamp()
                     )
@@ -124,7 +124,7 @@ class DeviceRepository
                 }
             }
             // Read the device RSSI.
-            it.connectGatt(ctx, true, gattCallback)
+            it?.connectGatt(ctx, true, gattCallback)
         }
         // Return the LiveData object for observation.
         return devices
@@ -158,8 +158,8 @@ class DeviceRepository
      * @see isCacheValid
      */
     private fun invalidateCache() = with(sharedPreferences.edit()) {
-        this.putLong(CACHE_EXPIRATION_KEY, -1) // Set the cache timestamp as -1.
-        this.apply() // Apply the changes.
+        this?.putLong(CACHE_EXPIRATION_KEY, -1) // Set the cache timestamp as -1.
+        this?.apply() // Apply the changes.
     }.also {
         dao.deleteAll() // Clear the devices table.
     }
@@ -175,9 +175,9 @@ class DeviceRepository
         // Edit the SharedPreferences.
         with(sharedPreferences.edit()) {
             // Put the calendar timestamp as a Date class milliseconds.
-            this.putLong(CACHE_EXPIRATION_KEY, calendar.time.time)
+            this?.putLong(CACHE_EXPIRATION_KEY, calendar.time.time)
             // Apply the changes.
-            this.apply()
+            this?.apply()
         }
     }
 
@@ -196,9 +196,9 @@ class DeviceRepository
         // Retrieve the current time in milliseconds.
         val currentTime = Date().time
         // Get the cache time.
-        val cacheTime = sharedPreferences.getLong(CACHE_EXPIRATION_KEY, currentTime)
+        val cacheTime = sharedPreferences.getLong(CACHE_EXPIRATION_KEY, -1)
         // If the current time is equals or larger than the cache time, it is not valid.
-        currentTime >= cacheTime
+        cacheTime > currentTime
     } else {
         // The cache is not valid, return false.
         false
