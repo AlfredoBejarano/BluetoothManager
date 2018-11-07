@@ -86,14 +86,14 @@ class DeviceAdapter(private var elements: MutableList<Device>?, private val foun
     /**
      * Updates the list of elements.
      */
-    fun updateList(newElements: List<Device>?) {
+    fun updateList(vararg newElements: Device) {
         // Create a temporary list that will hold both the old and new elements.
         val tempList = mutableListOf<Device>()
         tempList.addAll(elements ?: listOf())
-        tempList.addAll(newElements ?: listOf())
+        tempList.addAll(newElements)
         // Get the result from the difference.
         val result = DiffUtil.calculateDiff(DeviceDiffCallback(elements, tempList))
-        elements?.addAll(newElements ?: listOf())
+        elements?.addAll(newElements)
         // Report the updates.
         result.dispatchUpdatesTo(this)
     }
