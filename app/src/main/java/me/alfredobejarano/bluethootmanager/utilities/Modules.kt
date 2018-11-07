@@ -2,6 +2,7 @@ package me.alfredobejarano.bluethootmanager.utilities
 
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import me.alfredobejarano.bluethootmanager.BuildConfig
@@ -34,8 +35,10 @@ class RetrofitModule {
     @Provides
     @Singleton
     fun provideDeviceService(): DeviceService = Retrofit.Builder()
-        .addConverterFactory(GsonConverterFactory.create())
-        .client(createOkHttpClient())
+        .addConverterFactory(
+            GsonConverterFactory
+                .create(GsonBuilder().excludeFieldsWithoutExposeAnnotation().create())
+        ).client(createOkHttpClient())
         .baseUrl(BuildConfig.BASE_URL)
         .build()
         .create(DeviceService::class.java)
@@ -49,12 +52,12 @@ class RetrofitModule {
         .writeTimeout(10, TimeUnit.SECONDS)
         .connectTimeout(10, TimeUnit.SECONDS)
         .also {
-        if (BuildConfig.DEBUG) {
-            it.addInterceptor(HttpLoggingInterceptor().apply {
-                this.level = HttpLoggingInterceptor.Level.BODY
-            })
-        }
-    }.build()
+            if (BuildConfig.DEBUG) {
+                it.addInterceptor(HttpLoggingInterceptor().apply {
+                    this.level = HttpLoggingInterceptor.Level.BODY
+                })
+            }
+        }.build()
 }
 
 @Module

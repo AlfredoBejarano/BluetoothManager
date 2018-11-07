@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter
 import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import me.alfredobejarano.bluethootmanager.utilities.runOnIOThread
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -44,42 +45,41 @@ class DeviceRepository
 
     /**
      * Stores a device in the server.
-     *
-     * **Note** This function **IS NOT THREAD SAFE**, it has to be executed in a
-     * worker thread to prevent network in UI thread exceptions.
      */
     fun storeDevice(device: Device): LiveData<Device> {
         val result = MutableLiveData<Device>()
-        // Insert the device locally.
-        dao.insertOrUpdate(device)
-        // Attempt to store it in the cloud.
-        val call = service.addDevice(device)
-        // If the call hasn't been executed yet, enqueue it
-        if (!call.isExecuted) {
-            call.enqueue(object : Callback<Device> {
-                /**
-                 * If the device couldn't be saved, return null.
-                 */
-                override fun onFailure(call: Call<Device>, t: Throwable?) = result.postValue(null)
+        runOnIOThread {
+            // Insert the device locally.
+            dao.insertOrUpdate(device)
+            // Attempt to store it in the cloud.
+            val call = service.addDevice(device)
+            // If the call hasn't been executed yet, enqueue it
+            if (!call.isExecuted) {
+                call.enqueue(object : Callback<Device> {
+                    /**
+                     * If the device couldn't be saved, return null.
+                     */
+                    override fun onFailure(call: Call<Device>, t: Throwable?) = result.postValue(null)
 
-                /**
-                 * Update the device sync state to true and update it in the cache.
-                 */
-                override fun onResponse(call: Call<Device>, response: Response<Device>?) {
-                    if (response?.isSuccessful == true) {
-                        // Retrieve the added device from the response.
-                        val addedDevice = response.body() ?: device
-                        // If the device got stored remotely successfully, report it as syncState.
-                        addedDevice.syncState = true
-                        // Update the device locally.
-                        dao.insertOrUpdate(addedDevice)
-                        // Report the result
-                        result.postValue(addedDevice)
-                    } else {
-                        onFailure(call, null)
+                    /**
+                     * Update the device sync state to true and update it in the cache.
+                     */
+                    override fun onResponse(call: Call<Device>, response: Response<Device>?) = runOnIOThread {
+                        if (response?.isSuccessful == true) {
+                            // Retrieve the added device from the response.
+                            val addedDevice = response.body() ?: device
+                            // If the device got stored remotely successfully, report it as syncState.
+                            addedDevice.syncState = true
+                            // Update the device locally.
+                            dao.insertOrUpdate(addedDevice)
+                            // Report the result
+                            result.postValue(addedDevice)
+                        } else {
+                            onFailure(call, null)
+                        }
                     }
-                }
-            })
+                })
+            }
         }
         return result
     }
@@ -119,7 +119,7 @@ class DeviceRepository
                         strength = -1,
                         address = it.address,
                         syncState = true,
-                        createdAt = getCurrentTimeStamp()
+                        createdAt = null
                     )
                 )
             }

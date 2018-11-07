@@ -30,7 +30,7 @@ data class Device(
     @Expose
     @ColumnInfo(name = "created_at")
     @SerializedName("created_at")
-    var createdAt: String,
+    var createdAt: String?,
     @ColumnInfo(name = "sync_state")
     var syncState: Boolean
 ) : Comparable<Device> {

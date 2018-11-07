@@ -15,7 +15,7 @@ import me.alfredobejarano.bluethootmanager.BuildConfig
  * @since November 06, 2018 - 16:16
  * @version 1.0
  **/
-@Database(entities = [Device::class], version = 1, exportSchema = false)
+@Database(entities = [Device::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     /**
      * Returns an implementation of the [DeviceDao] interface.

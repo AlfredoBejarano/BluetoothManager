@@ -62,7 +62,7 @@ class DeviceAdapter(private var elements: MutableList<Device>?, private val foun
                 // Display the device strength
                 strength.text = String.format(Locale.getDefault(), ctx.getString(R.string.strength), device.strength)
                 // Display the device creation date.
-                date?.text = device.createdAt.fromTimeStamp("MMM dd, yyyy - HH:mm a")
+                date?.text = device.createdAt?.fromTimeStamp("MMM dd, yyyy - HH:mm a")
                 // Display the device sync status
                 syncStatus?.setImageResource(
                     if (device.syncState)
