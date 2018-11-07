@@ -40,7 +40,7 @@ class DeviceRepository
         /**
          * Constant that describes the format of the created_at timestamp for a device.
          */
-        const val TIMESTAMP_FORMAT = "yyyy-MM-dd'T'hh:mm:ss.S'z'"
+        const val TIMESTAMP_FORMAT = "yyyy-MM-dd'T'hh:mm:ss.S'Z'"
     }
 
     val devices = MutableLiveData<List<Device>>()

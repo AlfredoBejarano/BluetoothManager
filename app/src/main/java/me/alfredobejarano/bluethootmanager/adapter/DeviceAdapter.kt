@@ -104,6 +104,16 @@ class DeviceAdapter(private var elements: MutableList<Device>?, private val foun
         result.dispatchUpdatesTo(this)
     }
 
+    /**
+     * Sorts the elements by date.
+     */
+    fun sortByDate() {
+        elements?.sortWith(compareByDescending {
+            it.createdAt
+        })
+        notifyDataSetChanged()
+    }
+
     class DeviceViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         internal val date: TextView? = itemView.findViewById(R.id.device_date)
         internal val saveButton: ImageView? = itemView.findViewById(R.id.save)

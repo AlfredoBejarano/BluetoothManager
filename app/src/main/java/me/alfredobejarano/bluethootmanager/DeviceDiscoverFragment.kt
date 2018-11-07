@@ -66,6 +66,7 @@ class DeviceDiscoverFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = RecyclerView(requireContext()).also {
+        it.id = R.id.discovered_device_list
         it.layoutManager = LinearLayoutManager(requireContext())
         mList = it
     }

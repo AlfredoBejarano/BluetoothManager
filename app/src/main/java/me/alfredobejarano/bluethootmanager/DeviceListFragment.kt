@@ -1,9 +1,7 @@
 package me.alfredobejarano.bluethootmanager
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -43,6 +41,7 @@ class DeviceListFragment : Fragment() {
         SwipeRefreshLayout(requireContext()).apply {
             (this as ViewGroup).addView( // Create the RecyclerView and add it.
                 RecyclerView(requireContext()).also {
+                    it.id = R.id.stored_device_list
                     // Assign a layout manager.
                     it.layoutManager = LinearLayoutManager(requireContext())
                     // Set the RecyclerView as a value for the mDeviceRecyclerView property.
@@ -98,6 +97,26 @@ class DeviceListFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Injector.inject(this)
+        setHasOptionsMenu(true)
+    }
+
+    /**
+     * Inflates the menu for this fragment.
+     */
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        inflater?.inflate(R.menu.menu_device_list, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    /**
+     * Detects when an element in the menu gets clicked.
+     */
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.sort_by_date ->
+                (mDeviceRecyclerView.adapter as DeviceAdapter?)?.sortByDate()
+        }
+        return true
     }
 
     /**
