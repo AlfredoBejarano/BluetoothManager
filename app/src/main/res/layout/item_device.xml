@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="88dp"
+        android:paddingTop="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp"
+        android:background="?android:selectableItemBackground">
+    <ImageView
+            android:id="@+id/icon"
+            android:src="@drawable/ic_bluetooth"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:contentDescription="@string/app_name"
+            android:layout_width="24dp"
+            android:layout_height="24dp"/>
+    <TextView
+            tools:text="Suzuki Swift Sport"
+            android:id="@+id/device_name"
+            android:textSize="16sp"
+            android:textColor="#DE000000"
+            android:layout_marginStart="32dp"
+            android:layout_width="0dp"
+            android:layout_marginEnd="28dp"
+            app:layout_constraintEnd_toStartOf="@id/device_strength"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/icon" app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintBottom_toTopOf="@+id/device_address"/>
+
+    <TextView
+            tools:text="8C:9E:2F:1B:4A:3D"
+            android:id="@+id/device_address"
+            android:textSize="14sp"
+            android:textColor="#99000000"
+            android:layout_width="0dp"
+            android:layout_marginEnd="28dp"
+            android:layout_marginStart="32dp"
+            app:layout_constraintEnd_toStartOf="@id/device_strength"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/device_name"
+            app:layout_constraintStart_toEndOf="@id/icon" app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintBottom_toTopOf="@+id/device_date"/>
+
+    <TextView
+            tools:text="November 5, 2018 - 09:17 PM"
+            android:id="@+id/device_date"
+            android:textSize="14sp"
+            android:textStyle="italic"
+            android:textColor="#99000000"
+            android:layout_width="0dp"
+            android:layout_marginEnd="28dp"
+            android:layout_marginStart="32dp"
+            app:layout_constraintEnd_toStartOf="@id/device_strength"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/device_address"
+            app:layout_constraintStart_toEndOf="@id/icon" android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_bias="0.5"/>
+
+    <TextView
+            tools:text="-23dB"
+            android:id="@+id/device_strength"
+            android:textSize="12sp"
+            android:textColor="#99000000"
+            android:layout_width="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+    />
+
+    <ImageView
+            android:contentDescription="@string/app_name"
+            app:layout_constraintBottom_toTopOf="@id/sync_status"
+            app:layout_constraintTop_toBottomOf="@id/device_strength"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:src="@drawable/ic_save"
+            android:id="@+id/save"
+            android:background="?android:selectableItemBackground"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    <ImageView
+            android:contentDescription="@string/app_name"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:id="@+id/sync_status"
+            android:src="@drawable/ic_cloud_queue"
+            android:layout_width="16dp"
+            android:alpha="0.5"
+            app:layout_constraintHorizontal_bias="0"
+            android:layout_height="16dp"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
