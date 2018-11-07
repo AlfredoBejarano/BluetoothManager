@@ -31,13 +31,9 @@ object Injector {
      */
     fun inject(injectedObject: Any) {
         try {
-            // Get the class definition of the dagger app component.
-            val classDefinition = Class.forName(AppComponent::class.java.name)
-            // Check if the definition has a function called inject.
-            val function = classDefinition.getMethod("inject")
-            // Invoke the function.
-            function.invoke(injectedObject)
-        } catch (t: ExceptionInInitializerError) {
+            component.javaClass.getMethod("inject", injectedObject.javaClass)
+                .invoke(component, injectedObject)
+        } catch (t: NoSuchMethodException) {
             throw RuntimeException(
                 "No inject function found for a " +
                         "${injectedObject.javaClass.name} instance. " +
