@@ -33,6 +33,31 @@ data class Device(
     var createdAt: String,
     @ColumnInfo(name = "sync_state")
     var syncState: Boolean
-) {
+) : Comparable<Device> {
+    /**
+     * Compares a [Device] with another,
+     * if their MAC addresses are the same,
+     * return 0, if not, return one.
+     */
+    override fun compareTo(other: Device) =
+        if (other.address == this.address) {
+            0
+        } else {
+            1
+        }
+
+    /**
+     * Checks if this [Device] object
+     * has the same property values as
+     * another [Device] object.
+     */
+    fun hasTheSameContentAs(other: Device) =
+        this.name == other.name &&
+                this.address == other.address &&
+                this.strength == other.strength &&
+                this.createdAt == other.createdAt &&
+                this.syncState == other.syncState
+
     constructor() : this("", 0, "", "", true)
+
 }
