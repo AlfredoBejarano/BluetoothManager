@@ -3,9 +3,9 @@ package me.alfredobejarano.bluethootmanager
 import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.snackbar.Snackbar
 import me.alfredobejarano.bluethootmanager.adapter.DeviceAdapter
@@ -27,8 +27,16 @@ class MainActivity : AppCompatActivity(), DeviceAdapter.OnDeviceClickListener {
     /**
      * Saves a device when it gets clicked from an adapter.
      */
-    override fun onDeviceClicked(device: Device) =
-        viewModel.saveDevice(device)
+    override fun onDeviceClicked(device: Device) {
+        displayMessage(R.string.saving_device)
+        viewModel.saveDevice(device).observe(this, Observer {
+            it?.let {
+                displayMessage(R.string.device_saved)
+            } ?: run {
+                displayMessage(R.string.device_not_saved)
+            }
+        })
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,15 +63,15 @@ class MainActivity : AppCompatActivity(), DeviceAdapter.OnDeviceClickListener {
     }
 
     /**
-     * Displays a toast with a message.
+     * Displays a SnackBar with a message.
      */
     private fun displayMessage(text: String) =
-        Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+        Snackbar.make(findViewById(android.R.id.content), text, Snackbar.LENGTH_SHORT).show()
 
     /**
-     * Displays a toast with a message using a string resource.
+     * Displays a SnackBar with a message using a string resource.
      */
-    fun displayMessage(@StringRes resource: Int) =
+    private fun displayMessage(@StringRes resource: Int) =
         displayMessage(getString(resource))
 
     /**

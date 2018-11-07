@@ -6,4 +6,5 @@
     <string name="turn_on">Turn on</string>
     <string name="device_saved">Device saved!</string>
     <string name="device_not_saved">The device could not be saved</string>
+    <string name="saving_device">Saving device...</string>
 </resources>

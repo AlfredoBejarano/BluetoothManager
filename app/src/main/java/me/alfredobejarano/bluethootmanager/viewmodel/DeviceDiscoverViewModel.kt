@@ -49,11 +49,11 @@ class DeviceDiscoverViewModel
             // Create the device object.
             discoveredDevice.postValue(
                 Device(
-                name = it.name,
-                address = it.address,
-                syncState = false,
-                strength = strength.toInt(),
-                createdAt = repo.getCurrentTimeStamp()
+                    name = it.name ?: "",
+                    address = it.address ?: "",
+                    syncState = false,
+                    strength = strength.toInt(),
+                    createdAt = repo.getCurrentTimeStamp()
                 )
             )
         }
@@ -64,9 +64,7 @@ class DeviceDiscoverViewModel
      * repository class will handle the storing synchronization.
      * @param device The device being stored.
      */
-    fun saveDevice(device: Device) = runOnIOThread {
-        savedDevice.postValue(repo.storeDevice(device).value)
-    }
+    fun saveDevice(device: Device) = repo.storeDevice(device)
 
     /**
      * Factory class for the [DeviceDiscoverViewModel] class

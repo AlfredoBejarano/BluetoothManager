@@ -15,6 +15,7 @@ import org.robolectric.RuntimeEnvironment
  * @since November 06, 2018 - 16:24
  */
 @RunWith(RobolectricTestRunner::class)
+
 class AppDatabaseTest {
     private lateinit var testDB: AppDatabase
 
