@@ -2,6 +2,7 @@ package me.alfredobejarano.bluethootmanager.utilities
 
 import dagger.Component
 import me.alfredobejarano.bluethootmanager.DeviceDiscoverFragment
+import me.alfredobejarano.bluethootmanager.MainActivity
 import me.alfredobejarano.bluethootmanager.data.DeviceDao
 import me.alfredobejarano.bluethootmanager.data.DeviceRepository
 import me.alfredobejarano.bluethootmanager.data.DeviceService
@@ -26,6 +27,11 @@ import javax.inject.Singleton
         ViewModelFactoryModule::class]
 )
 interface AppComponent {
+    /**
+     * Provides dependency inversion for a [MainActivity] class.
+     */
+    fun inject(mainActivity: MainActivity)
+
     /**
      * Provides dependency inversion for a [DeviceDiscoverFragment] class.
      */
