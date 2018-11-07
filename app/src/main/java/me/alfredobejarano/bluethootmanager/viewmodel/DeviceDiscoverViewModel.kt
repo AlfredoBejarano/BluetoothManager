@@ -21,35 +21,25 @@ import javax.inject.Inject
 class DeviceDiscoverViewModel
 @Inject constructor(private val repo: DeviceRepository) : ViewModel() {
     var savedDevice = MutableLiveData<Device>()
-    var devices = MutableLiveData<List<Device>>()
+    var bondedDevices = MutableLiveData<List<Device>>()
+    var discoveredDevice = MutableLiveData<Device>()
 
     /**
-     * Calls the repository to read all the bonded bluetooth devices
+     * Calls the repository to read all the bonded bluetooth bondedDevices
      * to this device and provides observation to the UI via
-     * the [devices] property.
+     * the [bondedDevices] property.
      */
     fun readBondedDevices() = runOnIOThread {
-        val bonded = repo.findBondedDevices().value
-        val list = devices.value as MutableList?
-        // If the list is not empty, add the bonded devices to it.
-        list?.let {
-            it.addAll(bonded ?: mutableListOf())
-            devices.postValue(it) // Notify the change.
-        } ?: run {
-            // If the value is null, post the bonded devices as its value.
-            devices.postValue(bonded)
-        }
+        bondedDevices.postValue(repo.findBondedDevices())
     }
 
     /**
      * Receives an Intent to read the device stored in
      * it if a bluetooth device was discovered, observation
-     * of the findings is provided via the [devices] property.
+     * of the findings is provided via the [bondedDevices] property.
      * @param data The intent received from the discovery action.
      */
     fun reportFoundDevice(data: Intent) = runOnIOThread {
-        // Retrieve the list of devices from the LiveData object as a MutableList.
-        val deviceList = devices.value as MutableList? ?: mutableListOf()
         // Get the found device from the data.
         val foundDevice = data.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
         // If the found device is not null, proceed to add it to the list.
@@ -57,22 +47,15 @@ class DeviceDiscoverViewModel
             // Read the strength of the device from the data.
             val strength = data.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE)
             // Create the device object.
-            val device = Device(
+            discoveredDevice.postValue(
+                Device(
                 name = it.name,
                 address = it.address,
                 syncState = false,
                 strength = strength.toInt(),
                 createdAt = repo.getCurrentTimeStamp()
+                )
             )
-            // Add it to the mutable list.
-            (devices.value as MutableList?)?.let { value ->
-                // If the devices list value has a value now, add all the elements.
-                value.addAll(deviceList)
-                devices.postValue(value)
-            } ?: run {
-                // If the value is null, set it with the device list.
-                devices.postValue(deviceList)
-            }
         }
     }
 

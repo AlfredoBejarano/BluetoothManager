@@ -16,13 +16,14 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.fragment_device_discover.*
 import me.alfredobejarano.bluethootmanager.adapter.DeviceAdapter
+import me.alfredobejarano.bluethootmanager.data.Device
 import me.alfredobejarano.bluethootmanager.utilities.Injector
 import me.alfredobejarano.bluethootmanager.viewmodel.DeviceDiscoverViewModel
 import javax.inject.Inject
 
 /**
  * A simple [Fragment] subclass that displays a
- * list of bonded and discovered bluetooth devices.
+ * list of bonded and discovered bluetooth bondedDevices.
  *
  */
 class DeviceDiscoverFragment : Fragment() {
@@ -33,7 +34,7 @@ class DeviceDiscoverFragment : Fragment() {
     private lateinit var viewModel: DeviceDiscoverViewModel
 
     /**
-     * Broadcast receiver that will listen for found bluetooth devices.
+     * Broadcast receiver that will listen for found bluetooth bondedDevices.
      */
     private val mDeviceFoundReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -55,38 +56,57 @@ class DeviceDiscoverFragment : Fragment() {
         Injector.inject(this)
         // Fetch the ViewModel from the activity.
         viewModel = ViewModelProviders.of(requireActivity(), factory)[DeviceDiscoverViewModel::class.java]
-        // Observe changes in the found devices.
-        viewModel.devices.observe(this, Observer { devices ->
-            // Create a new adapter if the list adapter is null or update the existing one.
-            device_list?.adapter?.let {
-                // Update the list.
-                (device_list?.adapter as DeviceAdapter).updateList(devices)
-            } ?: run {
-                // Or create a new adapter if the list adapter is null.
-                device_list?.adapter = DeviceAdapter(devices, true)
-            }
-        })
-        // fetch the bonded devices
+        // Provide observers for the ViewModel.
+        observeViewModel()
+        // fetch the bonded bondedDevices
         viewModel.readBondedDevices()
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_device_discover, container, false)
     }
 
     /**
-     * Starts discovering devices when the fragment starts.
+     * Provides observation for the necessary LiveData properties from the ViewModel.
+     */
+    private fun observeViewModel() {
+        // Observe changes in the found bondedDevices.
+        viewModel.bondedDevices.observe(this, Observer { devices ->
+            // Create a new adapter if the list adapter is null or update the existing one.
+            device_list?.adapter?.let {
+                // Update the list.
+                (device_list?.adapter as DeviceAdapter).updateList(*devices.toTypedArray())
+            } ?: run {
+                // Or create a new adapter if the list adapter is null.
+                device_list?.adapter = DeviceAdapter(devices as MutableList<Device>, true)
+            }
+        })
+        // Observe changes in the discovered device.
+        viewModel.discoveredDevice.observe(this, Observer { device ->
+            // Create a new adapter if the list adapter is null or update the existing one.
+            device_list?.adapter?.let {
+                // Update the list.
+                (device_list?.adapter as DeviceAdapter).updateList(device)
+            } ?: run {
+                // Or create a new adapter if the list adapter is null.
+                device_list?.adapter = DeviceAdapter(mutableListOf(device), true)
+            }
+        })
+    }
+
+    /**
+     * Starts discovering bondedDevices when the fragment starts.
      */
     override fun onStart() {
         super.onStart()
-        requireContext().registerReceiver(mDeviceFoundReceiver, deviceFoundFilter)
+        requireActivity().registerReceiver(mDeviceFoundReceiver, deviceFoundFilter)
         btAdapter.startDiscovery()
     }
 
     /**
-     * Stops discovering devices if the fragment gets paused.
+     * Stops discovering bondedDevices if the fragment gets paused.
      */
     override fun onStop() {
         super.onStop()
-        requireContext().unregisterReceiver(mDeviceFoundReceiver)
+        requireActivity().unregisterReceiver(mDeviceFoundReceiver)
         btAdapter.cancelDiscovery()
     }
 }
