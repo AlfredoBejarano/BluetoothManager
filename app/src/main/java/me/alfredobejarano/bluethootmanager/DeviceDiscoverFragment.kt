@@ -21,7 +21,8 @@ import me.alfredobejarano.bluethootmanager.viewmodel.DeviceDiscoverViewModel
 import javax.inject.Inject
 
 /**
- * A simple [Fragment] subclass.
+ * A simple [Fragment] subclass that displays a
+ * list of bonded and discovered bluetooth devices.
  *
  */
 class DeviceDiscoverFragment : Fragment() {
