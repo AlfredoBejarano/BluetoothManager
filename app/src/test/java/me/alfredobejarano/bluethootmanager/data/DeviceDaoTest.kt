@@ -43,7 +43,7 @@ class DeviceDaoTest {
         val mockObserver =
             mock(Observer::class.java) as Observer<List<Device>>
         testDao.read().observeForever(mockObserver)
-        testDao.insertOrUpdate(Device("", 0, "1", "", true))
+        testDao.insertOrUpdate(Device("", "", "1", "", true))
         verify(mockObserver, atLeastOnce())
             .onChanged(any())
     }
@@ -64,7 +64,7 @@ class DeviceDaoTest {
     @Test
     fun readUnSync() {
         // Create a mock device
-        val mockUnSyncedDevice = Device("", 0, "2", "", false)
+        val mockUnSyncedDevice = Device("", "", "2", "", false)
         // Insert the device.
         testDao.insertOrUpdate(mockUnSyncedDevice)
         // Retrieve the un synced devices.

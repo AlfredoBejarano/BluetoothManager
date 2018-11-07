@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
-            xmlns:tools="http://schemas.android.com/tools" android:id="@+id/app_navigation"
+            android:id="@+id/app_navigation"
             app:startDestination="@id/deviceDiscoverFragment">
 
     <fragment android:id="@+id/deviceDiscoverFragment"
               android:name="me.alfredobejarano.bluethootmanager.DeviceDiscoverFragment"
-              android:label="fragment_device_discover" tools:layout="@layout/fragment_device_discover"/>
+              android:label="fragment_device_discover"
+    >
+        <action android:id="@+id/action_deviceDiscoverFragment_to_deviceListFragment"
+                app:destination="@id/deviceListFragment"/>
+    </fragment>
+    <fragment android:id="@+id/deviceListFragment" android:name="me.alfredobejarano.bluethootmanager.DeviceListFragment"
+              android:label="DeviceListFragment"/>
 </navigation>

@@ -21,7 +21,7 @@ data class Device(
     var name: String,
     @Expose
     @SerializedName("strength")
-    var strength: Int,
+    var strength: String,
     @Expose
     @ColumnInfo(name = "pk")
     @SerializedName("address")
@@ -46,18 +46,6 @@ data class Device(
             1
         }
 
-    /**
-     * Checks if this [Device] object
-     * has the same property values as
-     * another [Device] object.
-     */
-    fun hasTheSameContentAs(other: Device) =
-        this.name == other.name &&
-                this.address == other.address &&
-                this.strength == other.strength &&
-                this.createdAt == other.createdAt &&
-                this.syncState == other.syncState
-
-    constructor() : this("", 0, "", "", true)
+    constructor() : this("", "", "", "", true)
 
 }

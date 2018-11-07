@@ -58,12 +58,11 @@ class DeviceListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         // Create the ViewModel for this class.
-        mViewModel = ViewModelProviders.of(this, mFactory)[DeviceListViewModel::class.java].also {
-            // After creating it, observe its devices property.
-            observeViewModel()
-            // And fetch the devices.
-            it.fetchDevices()
-        }
+        mViewModel = ViewModelProviders.of(this, mFactory)[DeviceListViewModel::class.java]
+        // After creating it, observe its devices property.
+        observeViewModel()
+        // And fetch the devices.
+        mViewModel.fetchDevices()
     }
 
     /**

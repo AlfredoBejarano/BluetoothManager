@@ -116,7 +116,7 @@ class DeviceRepository
                 deviceList.add(
                     Device(
                         name = it.name,
-                        strength = -1,
+                        strength = "-1",
                         address = it.address,
                         syncState = true,
                         createdAt = null
@@ -183,7 +183,7 @@ class DeviceRepository
      * **Note** This function **IS NOT THREAD SAFE**, it has to be executed in a
      * worker thread to prevent network in UI thread exceptions.
      */
-    private fun readDevicesFromServer(): MutableLiveData<List<Device>> {
+    private fun readDevicesFromServer(): LiveData<List<Device>> {
         var results = MutableLiveData<List<Device>>()
         // Retrieve the call to perform the web service call.
         val call = service.fetchDevices()

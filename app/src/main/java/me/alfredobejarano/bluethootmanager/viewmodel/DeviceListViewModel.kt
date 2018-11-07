@@ -23,7 +23,7 @@ class DeviceListViewModel
      * Property that provides observation to a UI
      * controller for the list of devices.
      */
-    val devices = MutableLiveData<List<Device>>()
+    var devices = MutableLiveData<List<Device>>()
 
     /**
      * Retrieves the devices from the repository
@@ -31,9 +31,7 @@ class DeviceListViewModel
      * the [devices] property.
      */
     fun fetchDevices() = runOnIOThread {
-        repo.fetchDevices().also {
-            devices.postValue(it.value)
-        }
+        devices = repo.fetchDevices() as MutableLiveData<List<Device>>
     }
 
     /**

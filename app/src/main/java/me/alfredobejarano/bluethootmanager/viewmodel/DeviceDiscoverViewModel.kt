@@ -52,7 +52,7 @@ class DeviceDiscoverViewModel
                     name = it.name ?: "",
                     address = it.address ?: "",
                     syncState = false,
-                    strength = strength.toInt(),
+                    strength = strength.toString(),
                     createdAt = repo.getCurrentTimeStamp()
                 )
             )

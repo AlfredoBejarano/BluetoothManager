@@ -55,12 +55,18 @@ class DeviceAdapter(private var elements: MutableList<Device>?, private val foun
             with(holder) {
                 // Retrieve the ViewHolder context.
                 val ctx = itemView.context
+                // Builds the correct text to display as the device strength.
+                val uiStrength = if (device.strength.toLowerCase(Locale.getDefault()).contains("db")) {
+                    device.strength
+                } else {
+                    String.format(Locale.getDefault(), ctx.getString(R.string.strength), device.strength)
+                }
                 // Display the device name
                 deviceName.text = device.name
                 // Display the device address
                 address.text = device.address
                 // Display the device strength
-                strength.text = String.format(Locale.getDefault(), ctx.getString(R.string.strength), device.strength)
+                strength.text = uiStrength
                 // Display the device creation date.
                 date?.text = device.createdAt?.fromTimeStamp("MMM dd, yyyy - HH:mm a")
                 // Display the device sync status

@@ -29,5 +29,5 @@ class DeviceDiffCallback(
      * Checks if two device object contents are the same.
      */
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int) =
-        oldItems?.get(oldItemPosition)?.hasTheSameContentAs(newItems?.get(newItemPosition) ?: Device()) == true
+        areItemsTheSame(oldItemPosition, newItemPosition)
 }

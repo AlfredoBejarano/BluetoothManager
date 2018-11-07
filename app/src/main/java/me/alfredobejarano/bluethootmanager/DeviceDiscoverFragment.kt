@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
@@ -105,8 +106,11 @@ class DeviceDiscoverFragment : Fragment() {
      */
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
-            R.id.refresh -> refreshDevices()
-            R.id.my_devices -> Unit
+            R.id.refresh -> refreshDevices() // Refresh the device list.
+            R.id.my_devices -> Navigation.findNavController( // Navigate to the next fragment.
+                requireActivity(),
+                R.id.nav_host_fragment
+            ).navigate(R.id.action_deviceDiscoverFragment_to_deviceListFragment)
         }
         return true
     }
