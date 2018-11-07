@@ -12,13 +12,14 @@ import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Bundle
 import android.view.*
+import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.fragment_device_discover.*
 import me.alfredobejarano.bluethootmanager.adapter.DeviceAdapter
 import me.alfredobejarano.bluethootmanager.data.Device
 import me.alfredobejarano.bluethootmanager.utilities.Injector
@@ -39,6 +40,7 @@ class DeviceDiscoverFragment : Fragment() {
     lateinit var factory: DeviceDiscoverViewModel.Factory
     private val btAdapter = BluetoothAdapter.getDefaultAdapter()
     private val deviceFoundFilter = IntentFilter(ACTION_FOUND)
+    private lateinit var mList: RecyclerView
     private lateinit var viewModel: DeviceDiscoverViewModel
 
     /**
@@ -62,11 +64,9 @@ class DeviceDiscoverFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inject this fragment dependencies.
-        Injector.inject(this)
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_device_discover, container, false)
+    ) = RecyclerView(requireContext()).also {
+        it.layoutManager = LinearLayoutManager(requireContext())
+        mList = it
     }
 
     /**
@@ -74,13 +74,11 @@ class DeviceDiscoverFragment : Fragment() {
      */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        device_list?.layoutManager = LinearLayoutManager(requireContext())
         // Fetch the ViewModel from the activity.
         viewModel = ViewModelProviders.of(requireActivity(), factory)[DeviceDiscoverViewModel::class.java]
         // Provide observers for the ViewModel.
         observeViewModel()
         // fetch the bonded bondedDevices
-
         viewModel.readBondedDevices()
     }
 
@@ -89,6 +87,8 @@ class DeviceDiscoverFragment : Fragment() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Inject this fragment dependencies.
+        Injector.inject(this)
         setHasOptionsMenu(true)
     }
 
@@ -118,23 +118,23 @@ class DeviceDiscoverFragment : Fragment() {
         // Observe changes in the found bondedDevices.
         viewModel.bondedDevices.observe(this, Observer { devices ->
             // Create a new adapter if the list adapter is null or update the existing one.
-            device_list?.adapter?.let {
+            mList.adapter?.let {
                 // Update the list.
-                (device_list?.adapter as DeviceAdapter).updateList(*devices.toTypedArray())
+                (mList.adapter as DeviceAdapter).updateList(*devices.toTypedArray())
             } ?: run {
                 // Or create a new adapter if the list adapter is null.
-                device_list?.adapter = DeviceAdapter(devices as MutableList<Device>, true)
+                mList.adapter = DeviceAdapter(devices as MutableList<Device>, true)
             }
         })
         // Observe changes in the discovered device.
         viewModel.discoveredDevice.observe(this, Observer { device ->
             // Create a new adapter if the list adapter is null or update the existing one.
-            device_list?.adapter?.let {
+            mList.adapter?.let {
                 // Update the list.
-                (device_list?.adapter as DeviceAdapter).updateList(device)
+                (mList.adapter as DeviceAdapter).updateList(device)
             } ?: run {
                 // Or create a new adapter if the list adapter is null.
-                device_list?.adapter = DeviceAdapter(mutableListOf(device), true)
+                mList.adapter = DeviceAdapter(mutableListOf(device), true)
             }
         })
     }
@@ -168,8 +168,8 @@ class DeviceDiscoverFragment : Fragment() {
      * Requests the bonded devices again and searches for nearby devices.
      */
     private fun refreshDevices() {
-        device_list?.adapter = null // Destroy the adapter.
-        device_list?.invalidate() // Invalidate the list.
+        mList.adapter = null // Destroy the adapter.
+        mList.invalidate() // Invalidate the list.
         viewModel.readBondedDevices() // Read the bonded devices again.
         btAdapter.cancelDiscovery() // Cancel the device discovery.
         discoverDevices() // Starts discovering nearby devices.
@@ -185,12 +185,18 @@ class DeviceDiscoverFragment : Fragment() {
                 btAdapter.startDiscovery()
             } else {
                 // If the permission was denied, report to the user that no nearby devices will be discovered.
-                (requireActivity() as MainActivity).displayMessage(R.string.devices_will_not_be_discovered)
+                displayMessage(R.string.devices_will_not_be_discovered)
             }
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
     }
+
+    /**
+     * Displays a SnackBar with a message.
+     */
+    private fun displayMessage(@StringRes message: Int) =
+        (requireActivity() as MainActivity).displayMessage(message)
 
     /**
      * Starts discovering devices when the fragment starts.

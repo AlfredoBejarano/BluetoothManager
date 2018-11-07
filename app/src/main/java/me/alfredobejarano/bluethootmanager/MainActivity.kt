@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity(), DeviceAdapter.OnDeviceClickListener {
     /**
      * Displays a SnackBar with a message using a string resource.
      */
-    fun displayMessage(@StringRes resource: Int) =
+    internal fun displayMessage(@StringRes resource: Int) =
         displayMessage(getString(resource))
 
     /**
