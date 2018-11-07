@@ -5,7 +5,8 @@ import me.alfredobejarano.bluethootmanager.data.Device
 
 /**
  *
- * [Write your documentation here]
+ * [DiffUtil.Callback] class that will report to a RecyclerView
+ * adapter updates in a list of devices.
  *
  * @author Alfredo Bejarano
  * @since November 06, 2018 - 22:45
