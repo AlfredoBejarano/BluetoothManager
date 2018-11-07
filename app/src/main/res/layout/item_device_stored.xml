@@ -4,7 +4,7 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
+        android:layout_height="88dp"
         android:paddingTop="16dp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
@@ -44,7 +44,22 @@
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@+id/device_name"
             app:layout_constraintStart_toEndOf="@id/icon" app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintBottom_toTopOf="@+id/device_date"/>
+
+    <TextView
+            tools:text="November 5, 2018 - 09:17 PM"
+            android:id="@+id/device_date"
+            android:textSize="14sp"
+            android:textStyle="italic"
+            android:textColor="#99000000"
+            android:layout_width="0dp"
+            android:layout_marginEnd="28dp"
+            android:layout_marginStart="32dp"
+            app:layout_constraintEnd_toStartOf="@id/device_strength"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/device_address"
+            app:layout_constraintStart_toEndOf="@id/icon" android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_bias="0.5"/>
 
     <TextView
             tools:text="-23dB"
@@ -59,12 +74,12 @@
 
     <ImageView
             android:contentDescription="@string/app_name"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/device_strength"
             app:layout_constraintEnd_toEndOf="parent"
-            android:src="@drawable/ic_save"
-            android:id="@+id/save"
-            android:background="?android:selectableItemBackground"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:id="@+id/sync_status"
+            android:src="@drawable/ic_cloud_queue"
+            android:layout_width="16dp"
+            android:alpha="0.5"
+            app:layout_constraintHorizontal_bias="0"
+            android:layout_height="16dp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

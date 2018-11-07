@@ -6,5 +6,5 @@
         android:layout_height="match_parent"
         tools:context=".DeviceDiscoverFragment"
         android:id="@+id/device_list"
-        tools:listitem="@layout/item_device"
+        tools:listitem="@layout/item_device_stored"
 />
