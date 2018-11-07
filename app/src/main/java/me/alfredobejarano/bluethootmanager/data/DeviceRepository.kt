@@ -59,7 +59,7 @@ class DeviceRepository
                     /**
                      * If the device couldn't be saved, return null.
                      */
-                    override fun onFailure(call: Call<Device>, t: Throwable?) = result.postValue(null)
+                    override fun onFailure(call: Call<Device>, t: Throwable?) = result.postValue(device)
 
                     /**
                      * Update the device sync state to true and update it in the cache.

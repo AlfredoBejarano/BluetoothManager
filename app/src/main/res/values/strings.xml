@@ -12,4 +12,5 @@
     <string name="devices_will_not_be_discovered">Nearby devices will not be displayed</string>
     <string name="my_stored_devices">My stored devices</string>
     <string name="refresh_devices">Refresh devices</string>
+    <string name="no_devices_found">No devices found!</string>
 </resources>
