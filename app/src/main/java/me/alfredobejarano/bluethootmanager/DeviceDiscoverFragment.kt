@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.fragment_device_discover.*
 import me.alfredobejarano.bluethootmanager.adapter.DeviceAdapter
 import me.alfredobejarano.bluethootmanager.data.Device
@@ -54,14 +55,19 @@ class DeviceDiscoverFragment : Fragment() {
     ): View? {
         // Inject this fragment dependencies.
         Injector.inject(this)
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_device_discover, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        device_list?.layoutManager = LinearLayoutManager(requireContext())
         // Fetch the ViewModel from the activity.
         viewModel = ViewModelProviders.of(requireActivity(), factory)[DeviceDiscoverViewModel::class.java]
         // Provide observers for the ViewModel.
         observeViewModel()
         // fetch the bonded bondedDevices
         viewModel.readBondedDevices()
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_device_discover, container, false)
     }
 
     /**

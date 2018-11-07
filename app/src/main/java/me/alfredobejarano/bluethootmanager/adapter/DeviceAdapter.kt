@@ -10,8 +10,8 @@ import androidx.recyclerview.widget.RecyclerView
 import me.alfredobejarano.bluethootmanager.R
 import me.alfredobejarano.bluethootmanager.callback.DeviceDiffCallback
 import me.alfredobejarano.bluethootmanager.data.Device
-import me.alfredobejarano.bluethootmanager.utilities.formatString
 import me.alfredobejarano.bluethootmanager.utilities.fromTimeStamp
+import java.util.*
 
 /**
  *
@@ -60,7 +60,7 @@ class DeviceAdapter(private var elements: MutableList<Device>?, private val foun
                 // Display the device address
                 address.text = device.address
                 // Display the device strength
-                strength.text = formatString(ctx, R.string.strength, device.strength)
+                strength.text = String.format(Locale.getDefault(), ctx.getString(R.string.strength), device.strength)
                 // Display the device creation date.
                 date?.text = device.createdAt.fromTimeStamp("MMM dd, yyyy - HH:mm a")
                 // Display the device sync status

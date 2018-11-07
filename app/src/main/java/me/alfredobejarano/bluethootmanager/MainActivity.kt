@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity(), DeviceAdapter.OnDeviceClickListener {
     /**
      * Checks if the device is compatible with bluetooth.
      */
-    private fun isDeviceCompatible() = btAdapter == null
+    private fun isDeviceCompatible() = btAdapter != null
 
     /**
      * Checks if the device bluetooth is turned on.
