@@ -15,13 +15,11 @@ import java.util.*
  * @since November 06, 2018 - 21:46
  * @version 1.0
  **/
-private val LOCALE = Locale.getDefault()
-
 /**
  * Formats a given string using a given set of parameters.
  */
 fun formatString(string: String, vararg params: Any?) =
-    String.format(LOCALE, string, params)
+    String.format(Locale.getDefault(), string, params)
 
 /**
  * Formats a given string resource Id with a set of parameters.
@@ -34,8 +32,9 @@ fun formatString(ctx: Context, @StringRes resource: Int, vararg params: Any?) =
  * fails it returns the String itself.
  */
 fun String.fromTimeStamp(pattern: String): String {
-    val format = SimpleDateFormat(DeviceRepository.TIMESTAMP_FORMAT, LOCALE)
-    val displayFormat = SimpleDateFormat(pattern, LOCALE)
+    val locale = Locale.getDefault()
+    val format = SimpleDateFormat(DeviceRepository.TIMESTAMP_FORMAT, locale)
+    val displayFormat = SimpleDateFormat(pattern, locale)
     return try {
         displayFormat.format(format.parse(this))
     } catch (t: ParseException) {
