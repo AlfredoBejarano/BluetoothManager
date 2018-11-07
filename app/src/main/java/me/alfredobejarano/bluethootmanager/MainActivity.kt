@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity(), DeviceAdapter.OnDeviceClickListener {
     /**
      * Displays a toast with a message using a string resource.
      */
-    private fun displayMessage(@StringRes resource: Int) =
+    fun displayMessage(@StringRes resource: Int) =
         displayMessage(getString(resource))
 
     /**

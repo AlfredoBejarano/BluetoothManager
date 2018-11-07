@@ -90,6 +90,15 @@ class DeviceDiscoverFragment : Fragment() {
                 device_list?.adapter = DeviceAdapter(mutableListOf(device), true)
             }
         })
+        // Observe changes in the stored device.
+        viewModel.savedDevice.observe(this, Observer {
+            it?.let { safeDevice ->
+                (device_list?.adapter as DeviceAdapter?)?.updateList(safeDevice)
+                (requireActivity() as MainActivity).displayMessage(R.string.device_saved)
+            } ?: run {
+                (requireActivity() as MainActivity).displayMessage(R.string.device_not_saved)
+            }
+        })
     }
 
     /**

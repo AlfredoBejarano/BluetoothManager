@@ -4,4 +4,6 @@
     <string name="device_not_compatible">Your device doesn\'t support bluetooth</string>
     <string name="you_didnt_turned_your_bluetooth_on">Seems like you didn\'t turned your bluetooth on!</string>
     <string name="turn_on">Turn on</string>
+    <string name="device_saved">Device saved!</string>
+    <string name="device_not_saved">The device could not be saved</string>
 </resources>
