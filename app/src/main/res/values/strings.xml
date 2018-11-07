@@ -7,4 +7,7 @@
     <string name="device_saved">Device saved!</string>
     <string name="device_not_saved">The device could not be saved</string>
     <string name="saving_device">Saving device...</string>
+    <string name="permission_needed">We need to access to your location to find nearby bluetooth devices</string>
+    <string name="grant">grant</string>
+    <string name="devices_will_not_be_discovered">Nearby devices will not be displayed</string>
 </resources>

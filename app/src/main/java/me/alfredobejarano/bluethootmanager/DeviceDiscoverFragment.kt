@@ -1,20 +1,25 @@
 package me.alfredobejarano.bluethootmanager
 
 
+import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice.ACTION_FOUND
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_device_discover.*
 import me.alfredobejarano.bluethootmanager.adapter.DeviceAdapter
 import me.alfredobejarano.bluethootmanager.data.Device
@@ -28,6 +33,10 @@ import javax.inject.Inject
  *
  */
 class DeviceDiscoverFragment : Fragment() {
+    companion object {
+        private const val PERMISSION_REQUEST = 21
+    }
+
     @Inject
     lateinit var factory: DeviceDiscoverViewModel.Factory
     private val btAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -68,6 +77,7 @@ class DeviceDiscoverFragment : Fragment() {
         observeViewModel()
         // fetch the bonded bondedDevices
         viewModel.readBondedDevices()
+        // Check for coarse location permission.
     }
 
     /**
@@ -99,14 +109,57 @@ class DeviceDiscoverFragment : Fragment() {
     }
 
     /**
-     * Starts discovering bondedDevices when the fragment starts.
+     * Checks if the COARSE_LOCATION permission is granted, if not, proceeds to request it.
+     */
+    private fun requestLocationPermission() {
+        // Check if the permission is not granted.
+        val isDenied =
+            checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_DENIED
+
+        if (isDenied) {
+            // If it is not granted, display a SnackBar requesting the permission.
+            Snackbar.make(view ?: View(requireContext()), R.string.permission_needed, Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.grant) {
+                    // Set an action to grant it when the SnackBar shows.
+                    requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), PERMISSION_REQUEST)
+                }.show()
+        } else {
+            btAdapter.startDiscovery()
+        }
+    }
+
+    /**
+     * Detects the result of a permission request.
+     */
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        if (requestCode == PERMISSION_REQUEST) { // Checks if the result is for the COARSE_LOCATION request.
+            if (grantResults.isNotEmpty() && grantResults.first() == PERMISSION_GRANTED) {
+                // Start the device discovery
+                btAdapter.startDiscovery()
+            } else {
+                // If the permission was denied, report to the user that no nearby devices will be discovered.
+                (requireActivity() as MainActivity).displayMessage(R.string.devices_will_not_be_discovered)
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
+    }
+
+    /**
+     * Starts discovering devices when the fragment starts.
      */
     override fun onStart() {
         super.onStart()
         requireActivity().registerReceiver(mDeviceFoundReceiver, deviceFoundFilter)
-        btAdapter.startDiscovery()
+        requestLocationPermission()
     }
 
+    /**
+     * Stops discovering devices and unregisters the broadcast receiver.
+     */
     override fun onStop() {
         super.onStop()
         requireActivity().unregisterReceiver(mDeviceFoundReceiver)
