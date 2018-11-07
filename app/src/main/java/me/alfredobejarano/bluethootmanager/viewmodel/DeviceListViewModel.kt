@@ -1,9 +1,7 @@
 package me.alfredobejarano.bluethootmanager.viewmodel
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import me.alfredobejarano.bluethootmanager.data.Device
 import me.alfredobejarano.bluethootmanager.data.DeviceRepository
 import me.alfredobejarano.bluethootmanager.utilities.runOnIOThread
 import javax.inject.Inject
@@ -23,7 +21,7 @@ class DeviceListViewModel
      * Property that provides observation to a UI
      * controller for the list of devices.
      */
-    var devices = MutableLiveData<List<Device>>()
+    var devices = repo.devices
 
     /**
      * Retrieves the devices from the repository
@@ -31,7 +29,7 @@ class DeviceListViewModel
      * the [devices] property.
      */
     fun fetchDevices() = runOnIOThread {
-        devices = repo.fetchDevices() as MutableLiveData<List<Device>>
+        repo.fetchDevices()
     }
 
     /**

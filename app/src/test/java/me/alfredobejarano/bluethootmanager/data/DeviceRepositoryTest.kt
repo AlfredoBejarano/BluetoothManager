@@ -119,37 +119,15 @@ class DeviceRepositoryTest {
 
     /**
      * Asserts that fetching bondedDevices when the cache
-     * is valid works correctly.
-     */
-    @Test
-    fun fetchDevices_cacheValid() {
-        // Return true when asked if the mock preferences contains the cache timestamp.
-        `when`(mockSharedPreferences.contains(CACHE_EXPIRATION_KEY))
-            .thenReturn(true)
-        // When asked for the timestamp, return the maximum long value possible.
-        `when`(mockSharedPreferences.getLong(CACHE_EXPIRATION_KEY, -1))
-            .thenReturn(Long.MAX_VALUE)
-        // Fetch the bondedDevices.
-        testRepository.fetchDevices()
-        // Assert that the dao was called.
-        verify(mockDeviceDao).read()
-    }
-
-    /**
-     * Asserts that fetching bondedDevices when the cache
      * is not valid works correctly.
      */
     @Test
-    fun fetchDevices_cacheInvalid() {
+    fun fetchDevices() {
         // Return true when asked if the mock preferences contains the cache timestamp.
         `when`(mockSharedPreferences.contains(CACHE_EXPIRATION_KEY))
             .thenReturn(false)
         // Fetch the bondedDevices.
         testRepository.fetchDevices()
-        // Assert that the preferences were edited, first invalidating the timestamp and then updating it.
-        verify(mockSharedPreferences, times(1)).edit()
-        // Assert that the dao was called.
-        verify(mockDeviceDao).deleteAll()
     }
 
     /**

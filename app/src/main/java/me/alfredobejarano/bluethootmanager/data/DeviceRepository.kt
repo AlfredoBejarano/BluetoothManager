@@ -43,6 +43,8 @@ class DeviceRepository
         const val TIMESTAMP_FORMAT = "yyyy-MM-dd'T'hh:mm:ss.S'z'"
     }
 
+    val devices = MutableLiveData<List<Device>>()
+
     /**
      * Stores a device in the server.
      */
@@ -85,19 +87,6 @@ class DeviceRepository
     }
 
     /**
-     * Reads a list of bondedDevices from the server, if a cache is valid, it gets fetched
-     * from the local storage, if not, it gets fetched from the server.
-     *
-     * **Note*** this function **IS NOT THREAD SAFE**, execute it in a worker thread to
-     * prevent ANR errors, Database in UI thread exceptions and Network in UI exceptions.
-     */
-    fun fetchDevices() = if (isCacheValid()) {
-        dao.read() // Read the cached bondedDevices
-    } else {
-        refreshCache() // Refresh the cache.
-    }
-
-    /**
      * Uses the bluetooth adapter to find the bonded bondedDevices to this device.
      *
      * **Note** This function **IS NOT THREAD SAFE**, it has to be executed in a
@@ -131,9 +120,9 @@ class DeviceRepository
     /**
      * Invalidates the local cache and retrieves the list of bondedDevices.
      */
-    fun refreshCache(): LiveData<List<Device>> {
+    fun refreshCache() {
         invalidateCache() // Invalidate the local cache.
-        return readDevicesFromServer()
+        fetchDevices()
     }
 
     /**
@@ -183,8 +172,7 @@ class DeviceRepository
      * **Note** This function **IS NOT THREAD SAFE**, it has to be executed in a
      * worker thread to prevent network in UI thread exceptions.
      */
-    private fun readDevicesFromServer(): LiveData<List<Device>> {
-        var results = MutableLiveData<List<Device>>()
+    fun fetchDevices() {
         // Retrieve the call to perform the web service call.
         val call = service.fetchDevices()
         // If the call hasn't been executed yet, enqueue it
@@ -193,7 +181,9 @@ class DeviceRepository
              * If the API call for devices is not successful, use the local cached devices.
              */
             override fun onFailure(call: Call<List<Device>>, t: Throwable?) {
-                results = dao.read() as MutableLiveData<List<Device>>
+                val results = dao.read()
+                Thread.sleep(2000)
+                devices.postValue(results.value)
             }
 
             /**
@@ -202,8 +192,11 @@ class DeviceRepository
             override fun onResponse(call: Call<List<Device>>, response: Response<List<Device>>?) {
                 if (response?.isSuccessful == true) {
                     response.body()?.let {
-                        results.postValue(it)
-                        generateCacheTimeStamp()
+                        runOnIOThread {
+                            it.forEach { d -> dao.insertOrUpdate(d) }
+                            devices.postValue(it)
+                            generateCacheTimeStamp()
+                        }
                     } ?: run {
                         onFailure(call, null)
                     }
@@ -212,7 +205,6 @@ class DeviceRepository
                 }
             }
         })
-        return results
     }
 
     /**

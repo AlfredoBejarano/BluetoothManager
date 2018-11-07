@@ -61,6 +61,7 @@ class DeviceListFragment : Fragment() {
         mViewModel = ViewModelProviders.of(this, mFactory)[DeviceListViewModel::class.java]
         // After creating it, observe its devices property.
         observeViewModel()
+        mSwipeRefreshLayout.isRefreshing = true
         // And fetch the devices.
         mViewModel.fetchDevices()
     }
@@ -69,6 +70,7 @@ class DeviceListFragment : Fragment() {
      * Observes the ViewModel devices property to update the UI correctly.
      */
     private fun observeViewModel() = mViewModel.devices.observe(this, Observer { devices ->
+        mSwipeRefreshLayout.isRefreshing = false
         // Check if the devices list is not empty.
         if (devices?.isNotEmpty() == true) {
             // If the adapter exists for the list, update the elements, if not, create a new one.
