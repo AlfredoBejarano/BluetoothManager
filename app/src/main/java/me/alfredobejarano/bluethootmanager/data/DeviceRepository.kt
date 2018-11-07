@@ -1,9 +1,6 @@
 package me.alfredobejarano.bluethootmanager.data
 
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
-import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -14,7 +11,7 @@ import javax.inject.Inject
 /**
  *
  * Repository class that serves as the single source of truth for the ViewModel classes
- * for retrieving a list of devices.
+ * for retrieving a list of bondedDevices.
  *
  * @author Alfredo Bejarano
  * @since November 06, 2018 - 10:29
@@ -22,7 +19,6 @@ import javax.inject.Inject
  **/
 class DeviceRepository
 @Inject constructor(
-    private val ctx: Context,
     private val dao: DeviceDao,
     private val service: DeviceService,
     private val adapter: BluetoothAdapter,
@@ -64,74 +60,51 @@ class DeviceRepository
     }
 
     /**
-     * Reads a list of devices from the server, if a cache is valid, it gets fetched
+     * Reads a list of bondedDevices from the server, if a cache is valid, it gets fetched
      * from the local storage, if not, it gets fetched from the server.
      *
      * **Note*** this function **IS NOT THREAD SAFE**, execute it in a worker thread to
      * prevent ANR errors, Database in UI thread exceptions and Network in UI exceptions.
      */
     fun fetchDevices() = if (isCacheValid()) {
-        dao.read() // Read the cached devices
+        dao.read() // Read the cached bondedDevices
     } else {
         refreshCache() // Refresh the cache.
     }
 
     /**
-     * Uses the bluetooth adapter to find the bonded devices to this device.
+     * Uses the bluetooth adapter to find the bonded bondedDevices to this device.
      *
      * **Note** This function **IS NOT THREAD SAFE**, it has to be executed in a
      * worker thread to prevent ANR errors.
-     * @return [MutableLiveData] object to provide observation for the bonded devices.
+     * @return [MutableLiveData] object to provide observation for the bonded bondedDevices.
      */
-    fun findBondedDevices(): MutableLiveData<List<Device>> {
-        // MutableLiveData that provides observation for the devices that are found.
-        val devices = MutableLiveData<List<Device>>()
-        // Find the bonded devices with this device.
-        // List of bonded devices that are found..
+    fun findBondedDevices(): List<Device> {
+        // Find the bonded bondedDevices with this device.
+        // List of bonded bondedDevices that are found..
         val deviceList = mutableListOf<Device>()
-        // Get the bounded devices from the adapter.
+        // Get the bounded bondedDevices from the adapter.
         val bondedDevices = adapter.bondedDevices
         // Iterate through every single bonded device.
-        bondedDevices?.forEach {
-            // Create a callback object for retrieving every single device RSSI to read its strength.
-            val gattCallback = object : BluetoothGattCallback() {
-                /**
-                 * This function gets triggered when a Remote RSSI gets read.
-                 */
-                override fun onReadRemoteRssi(gatt: BluetoothGatt?, rssi: Int, status: Int) {
-                    // If the gathering of the RSSI succeeds, read the strength, if not, set it as 0.
-                    val strength = if (status == BluetoothGatt.GATT_SUCCESS) {
-                        rssi
-                    } else {
-                        0
-                    }
-                    // Create a new device, set is sync state as true to prevent the
-                    // app from store it when the internet status changes and the user
-                    // is not wanting to store it.
-                    val device = Device(
-                        name = it?.name ?: "",
-                        strength = strength,
-                        address = it?.address ?: "",
+        bondedDevices?.forEach { device ->
+            device?.let {
+                deviceList.add(
+                    Device(
+                        name = it.name,
+                        strength = -1,
+                        address = it.address,
                         syncState = true,
                         createdAt = getCurrentTimeStamp()
                     )
-                    // Add the device to the list.
-                    deviceList.add(device)
-                    // Report the new list value to the LiveData object.
-                    devices.postValue(deviceList)
-                    // Sync the device to the cloud.
-                    storeDevice(device)
-                }
+                )
             }
-            // Read the device RSSI.
-            it?.connectGatt(ctx, true, gattCallback)
         }
         // Return the LiveData object for observation.
-        return devices
+        return deviceList
     }
 
     /**
-     * Invalidates the local cache and retrieves the list of devices.
+     * Invalidates the local cache and retrieves the list of bondedDevices.
      */
     fun refreshCache(): LiveData<List<Device>> {
         invalidateCache() // Invalidate the local cache.
@@ -139,7 +112,7 @@ class DeviceRepository
     }
 
     /**
-     * Retrieves all the un synced devices from the
+     * Retrieves all the un synced bondedDevices from the
      * local storage and reports them to the cloud.
      *
      * **Note** This function **IS NOT THREAD SAFE**, so prevent using it as is,
@@ -159,7 +132,7 @@ class DeviceRepository
         this?.putLong(CACHE_EXPIRATION_KEY, -1) // Set the cache timestamp as -1.
         this?.apply() // Apply the changes.
     }.also {
-        dao.deleteAll() // Clear the devices table.
+        dao.deleteAll() // Clear the bondedDevices table.
     }
 
     /**
@@ -180,14 +153,14 @@ class DeviceRepository
     }
 
     /**
-     * Reads all the stored devices from the server.
+     * Reads all the stored bondedDevices from the server.
      *
      * **Note** This function **IS NOT THREAD SAFE**, it has to be executed in a
      * worker thread to prevent network in UI thread exceptions.
      */
     private fun readDevicesFromServer() = service.fetchDevices().also {
         it.value?.let {
-            generateCacheTimeStamp() // Read the devices from the cloud, And generate the new cache timestamp.
+            generateCacheTimeStamp() // Read the bondedDevices from the cloud, And generate the new cache timestamp.
         } ?: run {
             (it as MutableLiveData).postValue(dao.read().value)
         }

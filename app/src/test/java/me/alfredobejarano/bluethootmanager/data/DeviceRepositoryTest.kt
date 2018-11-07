@@ -16,7 +16,6 @@ import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
@@ -47,7 +46,6 @@ class DeviceRepositoryTest {
     fun setup() {
         MockitoAnnotations.initMocks(this)
         testRepository = DeviceRepository(
-            ctx = RuntimeEnvironment.systemContext,
             dao = mockDeviceDao,
             adapter = mockAdapter,
             service = mockDeviceService,
@@ -105,7 +103,7 @@ class DeviceRepositoryTest {
     }
 
     /**
-     * Asserts that fetching devices when the cache
+     * Asserts that fetching bondedDevices when the cache
      * is valid works correctly.
      */
     @Test
@@ -116,14 +114,14 @@ class DeviceRepositoryTest {
         // When asked for the timestamp, return the maximum long value possible.
         `when`(mockSharedPreferences.getLong(CACHE_EXPIRATION_KEY, -1))
             .thenReturn(Long.MAX_VALUE)
-        // Fetch the devices.
+        // Fetch the bondedDevices.
         testRepository.fetchDevices()
         // Assert that the dao was called.
         verify(mockDeviceDao).read()
     }
 
     /**
-     * Asserts that fetching devices when the cache
+     * Asserts that fetching bondedDevices when the cache
      * is not valid works correctly.
      */
     @Test
@@ -132,13 +130,13 @@ class DeviceRepositoryTest {
         // Return true when asked if the mock preferences contains the cache timestamp.
         `when`(mockSharedPreferences.contains(CACHE_EXPIRATION_KEY))
             .thenReturn(false)
-        // When the service gets called for fetching devices, return the mock result.
+        // When the service gets called for fetching bondedDevices, return the mock result.
         `when`(mockDeviceService.fetchDevices())
             .thenReturn(mockResult)
         // When the result value gets requested, return an empty list.
         `when`(mockResult.value)
             .thenReturn(listOf())
-        // Fetch the devices.
+        // Fetch the bondedDevices.
         testRepository.fetchDevices()
         // Assert that the preferences were edited, first invalidating the timestamp and then updating it.
         verify(mockSharedPreferences, times(2)).edit()
@@ -149,36 +147,35 @@ class DeviceRepositoryTest {
     }
 
     /**
-     * Asserts that finding a set of bonded devices
+     * Asserts that finding a set of bonded bondedDevices
      * works correctly.
      */
     @Test
     fun findBondedDevices_foundDevices() {
         val mockDevice = mock(BluetoothDevice::class.java)
-        // When the devices get requested from the mock Bt adapter, return a mock set.
+        // Return mock values for the mock devices.
+        `when`(mockDevice.name).thenReturn("name")
+        `when`(mockDevice.address).thenReturn("address")
+        // When the bondedDevices get requested from the mock Bt adapter, return a mock set.
         `when`(mockAdapter.bondedDevices)
             .thenReturn(setOf<BluetoothDevice>(mockDevice))
         // Call the Test repository class.
-        testRepository.findBondedDevices()
-        // verify that a connection gathering request was made in the mock object.
-        verify(mockDevice).connectGatt(any(), anyBoolean(), any())
+        assert(testRepository.findBondedDevices().isNotEmpty())
     }
 
     /**
-     * Asserts that the flow of finding any bonded devices
-     * and the set of devices being empty, works correctly.
+     * Asserts that the flow of finding any bonded bondedDevices
+     * and the set of bondedDevices being empty, works correctly.
      */
     @Test
     fun findBondedDevices_NoDevicesFound() {
         // Create a mock observer
         val mockObserver = mock(Observer::class.java) as Observer<List<Device>>
-        // When the devices get requested from the mock Bt adapter, return a mock set.
+        // When the bondedDevices get requested from the mock Bt adapter, return a mock set.
         `when`(mockAdapter.bondedDevices)
             .thenReturn(setOf<BluetoothDevice>())
         // Call the Test repository class.
-        testRepository.findBondedDevices().observeForever(mockObserver)
-        // verify that no changes were reported, as the observer never gets called.
-        verify(mockObserver, never()).onChanged(any())
+        assert(testRepository.findBondedDevices().isEmpty())
     }
 
     /**
@@ -187,7 +184,7 @@ class DeviceRepositoryTest {
     @Test
     fun refreshCache() {
         val mockResult = mock(LiveData::class.java) as LiveData<List<Device>>
-        // When the service gets called for fetching devices, return the mock result.
+        // When the service gets called for fetching bondedDevices, return the mock result.
         `when`(mockDeviceService.fetchDevices())
             .thenReturn(mockResult)
         // When the result value gets requested, return an empty list.
@@ -202,7 +199,7 @@ class DeviceRepositoryTest {
     }
 
     /**
-     * Tests that the flow of synchronizing local found devices is performed correctly.
+     * Tests that the flow of synchronizing local found bondedDevices is performed correctly.
      */
     @Test
     fun synchronizeDevices() {
@@ -212,7 +209,7 @@ class DeviceRepositoryTest {
         val mockDeviceList = mutableListOf(mockDevice)
         // Mock LiveData object containing the result of adding the object.
         val mockAddResult = mock(LiveData::class.java) as LiveData<Device>
-        // When reading non sync devices, return the mocked list.
+        // When reading non sync bondedDevices, return the mocked list.
         `when`(mockDeviceDao.readUnSync())
             .thenReturn(mockDeviceList)
         // When requesting the mock LiveData value, return the mock device.
@@ -221,7 +218,7 @@ class DeviceRepositoryTest {
         // When Adding a device, return the mock result.
         `when`(mockDeviceService.addDevice(mockDevice))
             .thenReturn(mockAddResult)
-        // Sync the devices.
+        // Sync the bondedDevices.
         testRepository.synchronizeDevices()
         // Assert that the device sync status is now true.
         assert(mockDevice.syncState)
