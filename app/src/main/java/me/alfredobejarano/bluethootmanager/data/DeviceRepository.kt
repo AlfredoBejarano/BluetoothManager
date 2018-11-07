@@ -4,6 +4,9 @@ import android.bluetooth.BluetoothAdapter
 import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
@@ -46,17 +49,39 @@ class DeviceRepository
      * worker thread to prevent network in UI thread exceptions.
      */
     fun storeDevice(device: Device): LiveData<Device> {
+        val result = MutableLiveData<Device>()
         // Insert the device locally.
         dao.insertOrUpdate(device)
         // Attempt to store it in the cloud.
-        return service.addDevice(device).also {
-            it.value?.let { addedDevice ->
-                // If the device got stored remotely successfully, report it as syncState.
-                addedDevice.syncState = true
-                // Update the device locally.
-                dao.insertOrUpdate(addedDevice)
-            }
+        val call = service.addDevice(device)
+        // If the call hasn't been executed yet, enqueue it
+        if (!call.isExecuted) {
+            call.enqueue(object : Callback<Device> {
+                /**
+                 * If the device couldn't be saved, return null.
+                 */
+                override fun onFailure(call: Call<Device>, t: Throwable?) = result.postValue(null)
+
+                /**
+                 * Update the device sync state to true and update it in the cache.
+                 */
+                override fun onResponse(call: Call<Device>, response: Response<Device>?) {
+                    if (response?.isSuccessful == true) {
+                        // Retrieve the added device from the response.
+                        val addedDevice = response.body() ?: device
+                        // If the device got stored remotely successfully, report it as syncState.
+                        addedDevice.syncState = true
+                        // Update the device locally.
+                        dao.insertOrUpdate(addedDevice)
+                        // Report the result
+                        result.postValue(addedDevice)
+                    } else {
+                        onFailure(call, null)
+                    }
+                }
+            })
         }
+        return result
     }
 
     /**
@@ -158,12 +183,36 @@ class DeviceRepository
      * **Note** This function **IS NOT THREAD SAFE**, it has to be executed in a
      * worker thread to prevent network in UI thread exceptions.
      */
-    private fun readDevicesFromServer() = service.fetchDevices().also {
-        it.value?.let {
-            generateCacheTimeStamp() // Read the bondedDevices from the cloud, And generate the new cache timestamp.
-        } ?: run {
-            (it as MutableLiveData).postValue(dao.read().value)
-        }
+    private fun readDevicesFromServer(): MutableLiveData<List<Device>> {
+        var results = MutableLiveData<List<Device>>()
+        // Retrieve the call to perform the web service call.
+        val call = service.fetchDevices()
+        // If the call hasn't been executed yet, enqueue it
+        call.enqueue(object : Callback<List<Device>> {
+            /**
+             * If the API call for devices is not successful, use the local cached devices.
+             */
+            override fun onFailure(call: Call<List<Device>>, t: Throwable?) {
+                results = dao.read() as MutableLiveData<List<Device>>
+            }
+
+            /**
+             * Report the found results to a LiveData object.
+             */
+            override fun onResponse(call: Call<List<Device>>, response: Response<List<Device>>?) {
+                if (response?.isSuccessful == true) {
+                    response.body()?.let {
+                        results.postValue(it)
+                        generateCacheTimeStamp()
+                    } ?: run {
+                        onFailure(call, null)
+                    }
+                } else {
+                    onFailure(call, null)
+                }
+            }
+        })
+        return results
     }
 
     /**

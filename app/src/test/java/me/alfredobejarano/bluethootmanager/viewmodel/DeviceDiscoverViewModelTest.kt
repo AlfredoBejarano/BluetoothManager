@@ -4,7 +4,6 @@ import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import me.alfredobejarano.bluethootmanager.data.Device
 import me.alfredobejarano.bluethootmanager.data.DeviceRepository
@@ -46,18 +45,13 @@ class DeviceDiscoverViewModelTest {
     fun readBondedDevices() {
         // Mocked list of devices.
         val mockResult = listOf<Device>()
-        // Mocked LiveData object to test observation.
-        val mockLiveData = mock(MutableLiveData::class.java) as MutableLiveData<List<Device>>
         // Mock observer, to test changes from the repository.
         val mockObserver = mock(Observer::class.java) as Observer<List<Device>>
-        // When the mocked LiveData value gets requested, return the mocked result.
-        `when`(mockLiveData.value)
-            .thenReturn(mockResult)
         // When the mock repository gets a task of find the bounded devices, return the mock LiveData
         `when`(mockRepository.findBondedDevices())
-            .thenReturn(mockLiveData)
+            .thenReturn(mockResult)
         // Observe the devices LiveData object.
-        testViewModel.devices.observeForever(mockObserver)
+        testViewModel.bondedDevices.observeForever(mockObserver)
         // Read the bonded devices.
         testViewModel.readBondedDevices()
         // Verify that the ViewModel detected changes.
@@ -70,7 +64,7 @@ class DeviceDiscoverViewModelTest {
         // Mock device found by the intent.
         val mockDevice = mock(BluetoothDevice::class.java)
         // Mock observer, for listening to the device result.
-        val mockObserver = mock(Observer::class.java) as Observer<List<Device>>
+        val mockObserver = mock(Observer::class.java) as Observer<Device>
         // mock intent, "received" when discovering the mock device.
         val mockIntent = mock(Intent::class.java)
         // When requesting the device from the mock intent, return the mock device.
@@ -89,7 +83,7 @@ class DeviceDiscoverViewModelTest {
         `when`(mockRepository.getCurrentTimeStamp())
             .thenReturn("")
         // Observe the devices value using the mock observer.
-        testViewModel.devices.observeForever(mockObserver)
+        testViewModel.discoveredDevice.observeForever(mockObserver)
         // Report a found device using the mock intent.
         testViewModel.reportFoundDevice(mockIntent)
         // Verify that the device lists changed within 2 seconds.

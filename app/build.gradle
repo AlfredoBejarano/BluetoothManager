@@ -43,6 +43,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.9.1'
     implementation 'android.arch.navigation:navigation-ui:1.0.0-alpha07'
+    implementation 'com.github.leonardoxh:retrofit2-livedata-adapter:1.1.2'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha2'
     implementation 'android.arch.navigation:navigation-fragment:1.0.0-alpha07'
     // Unit test dependencies.
@@ -52,6 +53,7 @@ dependencies {
     testImplementation 'org.robolectric:robolectric:4.0.1'
     testImplementation 'androidx.arch.core:core-testing:2.0.0'
     testImplementation 'androidx.room:room-testing:2.1.0-alpha02'
+    testImplementation 'com.squareup.okhttp3:mockwebserver:3.11.0'
     // Instrumented test dependencies.
     androidTestImplementation 'androidx.test:rules:1.1.0'
     androidTestImplementation 'androidx.test:runner:1.1.0'

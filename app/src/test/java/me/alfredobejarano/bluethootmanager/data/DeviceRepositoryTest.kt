@@ -5,9 +5,14 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.SharedPreferences
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import com.google.gson.Gson
+import me.alfredobejarano.bluethootmanager.BuildConfig
 import me.alfredobejarano.bluethootmanager.data.DeviceRepository.Companion.CACHE_EXPIRATION_KEY
+import okhttp3.OkHttpClient
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -17,6 +22,8 @@ import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 /**
  * Test suite for the [DeviceRepositoryTest] class.
@@ -36,21 +43,36 @@ class DeviceRepositoryTest {
     @Mock
     private lateinit var mockAdapter: BluetoothAdapter
     @Mock
-    private lateinit var mockDeviceService: DeviceService
-    @Mock
     private lateinit var mockSharedPreferences: SharedPreferences
-
+    private lateinit var mockWebServer: MockWebServer
+    private lateinit var mockDeviceService: DeviceService
     private lateinit var testRepository: DeviceRepository
 
     @Before
     fun setup() {
+        // Start the Mock web Server
+        mockWebServer = MockWebServer()
+        mockWebServer.start()
+        // Create the mock device service implementation
+        mockDeviceService = Retrofit.Builder()
+            .baseUrl(BuildConfig.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(OkHttpClient.Builder().build())
+            .build().create(DeviceService::class.java)
+        // Init the mockito mocks
         MockitoAnnotations.initMocks(this)
+        // Create the test repository
         testRepository = DeviceRepository(
             dao = mockDeviceDao,
             adapter = mockAdapter,
             service = mockDeviceService,
             sharedPreferences = mockSharedPreferences
         )
+    }
+
+    @After
+    fun tearDown() {
+        mockWebServer.shutdown()
     }
 
     /**
@@ -60,22 +82,19 @@ class DeviceRepositoryTest {
      */
     @Test
     fun storeDevice_locallyAndRemotely() {
-        // Create a mock device
-        val mockDevice = mock(Device::class.java)
-        // Create a mock response for the service
-        val mockServiceResponse = mock(LiveData::class.java) as LiveData<Device>
-        // When the mock service response gets its value requested, return a mock device.
-        `when`(mockServiceResponse.value)
-            .thenReturn(mockDevice)
-        // When the mock device service gets a device added, return the mock service response.
-        `when`(mockDeviceService.addDevice(mockDevice))
-            .thenReturn(mockServiceResponse)
-        // Store the mock device.
-        testRepository.storeDevice(mockDevice)
-        // Verify that the dao inserted the device and then it got updated, as it got syncState.
-        verify(mockDeviceDao, times(2)).insertOrUpdate(mockDevice)
-        // Verify that the device was added.
-        verify(mockDeviceService).addDevice(mockDevice)
+        val mockObserver = Observer<Device> { assert(it?.syncState == true) }
+        // Create a mock device object
+        val mockDevice = Device()
+        // Create a mock response for the web server.
+        val mockResponse = MockResponse()
+            .setResponseCode(200)
+            .setBody(Gson().toJson(mockDevice))
+        // Enqueue the request
+        mockWebServer.enqueue(mockResponse)
+        // Store the device.
+        testRepository.storeDevice(mockDevice).observeForever(mockObserver)
+        // Wait 2 seconds for the request to perform.
+        Thread.sleep(500)
     }
 
     /**
@@ -84,22 +103,18 @@ class DeviceRepositoryTest {
      */
     @Test
     fun storeDevice_locallyOnly() {
-        // Create a mock device
-        val mockDevice = mock(Device::class.java)
-        // Create a mock response for the service
-        val mockServiceResponse = mock(LiveData::class.java) as LiveData<Device>
-        // When the mock service response gets its value requested, return null, this means the remote saving failed.
-        `when`(mockServiceResponse.value)
-            .thenReturn(null)
-        // When the mock device service gets a device added, return the mock service response.
-        `when`(mockDeviceService.addDevice(mockDevice))
-            .thenReturn(mockServiceResponse)
-        // Store the mock device.
+        // Create a mock device object
+        val mockDevice = Device()
+        // Create a mock response for the web server.
+        val mockResponse = MockResponse()
+            .setResponseCode(500)
+            .setBody(Gson().toJson(Device()))
+        // Enqueue the request
+        mockWebServer.enqueue(mockResponse)
+        // Store the device.
         testRepository.storeDevice(mockDevice)
-        // Verify that the dao inserted the device and didn't updated it, as the remote saving failed.
-        verify(mockDeviceDao, times(1)).insertOrUpdate(mockDevice)
-        // Verify that the device was added.
-        verify(mockDeviceService).addDevice(mockDevice)
+        // Verify that the dao just stored one item in the lapse of 2 full seconds.
+        verify(mockDeviceDao, timeout(2000)).insertOrUpdate(mockDevice)
     }
 
     /**
@@ -126,24 +141,15 @@ class DeviceRepositoryTest {
      */
     @Test
     fun fetchDevices_cacheInvalid() {
-        val mockResult = mock(LiveData::class.java) as LiveData<List<Device>>
         // Return true when asked if the mock preferences contains the cache timestamp.
         `when`(mockSharedPreferences.contains(CACHE_EXPIRATION_KEY))
             .thenReturn(false)
-        // When the service gets called for fetching bondedDevices, return the mock result.
-        `when`(mockDeviceService.fetchDevices())
-            .thenReturn(mockResult)
-        // When the result value gets requested, return an empty list.
-        `when`(mockResult.value)
-            .thenReturn(listOf())
         // Fetch the bondedDevices.
         testRepository.fetchDevices()
         // Assert that the preferences were edited, first invalidating the timestamp and then updating it.
-        verify(mockSharedPreferences, times(2)).edit()
+        verify(mockSharedPreferences, times(1)).edit()
         // Assert that the dao was called.
         verify(mockDeviceDao).deleteAll()
-        // verify that the remote repository was called
-        verify(mockDeviceService).fetchDevices()
     }
 
     /**
@@ -169,8 +175,6 @@ class DeviceRepositoryTest {
      */
     @Test
     fun findBondedDevices_NoDevicesFound() {
-        // Create a mock observer
-        val mockObserver = mock(Observer::class.java) as Observer<List<Device>>
         // When the bondedDevices get requested from the mock Bt adapter, return a mock set.
         `when`(mockAdapter.bondedDevices)
             .thenReturn(setOf<BluetoothDevice>())
@@ -183,19 +187,10 @@ class DeviceRepositoryTest {
      */
     @Test
     fun refreshCache() {
-        val mockResult = mock(LiveData::class.java) as LiveData<List<Device>>
-        // When the service gets called for fetching bondedDevices, return the mock result.
-        `when`(mockDeviceService.fetchDevices())
-            .thenReturn(mockResult)
-        // When the result value gets requested, return an empty list.
-        `when`(mockResult.value)
-            .thenReturn(listOf())
         // Refresh the cache.
         testRepository.refreshCache()
-        // The cache is updated two times, when invalidated and when fetched again.
-        verify(mockSharedPreferences, times(2)).edit()
-        // verify that the table got nuked!
-        verify(mockDeviceDao).deleteAll()
+        // Verify that the cache timestamp changed.
+        verify(mockSharedPreferences, timeout(2000)).edit()
     }
 
     /**
@@ -203,25 +198,18 @@ class DeviceRepositoryTest {
      */
     @Test
     fun synchronizeDevices() {
-        // Mock device that has not been sync.
-        val mockDevice = Device("", 0, "", "", false)
-        // Mock list containing the device that has not being sync.
-        val mockDeviceList = mutableListOf(mockDevice)
-        // Mock LiveData object containing the result of adding the object.
-        val mockAddResult = mock(LiveData::class.java) as LiveData<Device>
-        // When reading non sync bondedDevices, return the mocked list.
+        val mockDeviceList = mutableListOf(Device().apply { syncState = false })
+        // Return the mock device list when requested.
         `when`(mockDeviceDao.readUnSync())
             .thenReturn(mockDeviceList)
-        // When requesting the mock LiveData value, return the mock device.
-        `when`(mockAddResult.value)
-            .thenReturn(mockDevice)
-        // When Adding a device, return the mock result.
-        `when`(mockDeviceService.addDevice(mockDevice))
-            .thenReturn(mockAddResult)
-        // Sync the bondedDevices.
+        // Create a mock response for the web server.
+        val mockResponse = MockResponse()
+            .setResponseCode(200)
+            .setBody(Gson().toJson(mockDeviceList.first()))
+        // Enqueue the response.
+        mockWebServer.enqueue(mockResponse)
+        // Sync the devices.
         testRepository.synchronizeDevices()
-        // Assert that the device sync status is now true.
-        assert(mockDevice.syncState)
     }
 
     /**

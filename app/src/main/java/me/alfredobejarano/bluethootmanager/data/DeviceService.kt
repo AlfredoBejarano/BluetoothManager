@@ -1,6 +1,6 @@
 package me.alfredobejarano.bluethootmanager.data
 
-import androidx.lifecycle.LiveData
+import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -19,7 +19,7 @@ interface DeviceService {
      * Calls the remote API to retrieve the list of stored devices.
      */
     @GET("devices/")
-    fun fetchDevices(): LiveData<List<Device>>
+    fun fetchDevices(): Call<List<Device>>
 
     /**
      * Save the device to the remote API.
@@ -28,5 +28,5 @@ interface DeviceService {
      * "created_at" property updated.
      */
     @POST("add/")
-    fun addDevice(@Body device: Device): LiveData<Device>
+    fun addDevice(@Body device: Device): Call<Device>
 }
