@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">BluethootManager</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="strength">%ddB</string>
+    <string name="device_not_compatible">Your device doesn\'t support bluetooth</string>
+    <string name="you_didnt_turned_your_bluetooth_on">Seems like you didn\'t turned your bluetooth on!</string>
+    <string name="turn_on">Turn on</string>
 </resources>
