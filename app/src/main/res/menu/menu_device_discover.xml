@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+            app:showAsAction="ifRoom"
+            android:id="@+id/my_devices"
+            android:title="@string/my_stored_devices"
+            android:icon="@drawable/ic_my_devices"/>
+
+    <item
+            app:showAsAction="ifRoom"
+            android:id="@+id/refresh"
+            android:title="@string/refresh_devices"
+            android:icon="@drawable/ic_refresh"/>
+</menu>

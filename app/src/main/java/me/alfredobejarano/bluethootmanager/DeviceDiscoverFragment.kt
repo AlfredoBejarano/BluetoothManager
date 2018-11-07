@@ -11,9 +11,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -58,6 +56,9 @@ class DeviceDiscoverFragment : Fragment() {
         }
     }
 
+    /**
+     * Injects this view dependencies before creating the view.
+     */
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -68,6 +69,9 @@ class DeviceDiscoverFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_device_discover, container, false)
     }
 
+    /**
+     * Observes ViewModel LiveData properties and reads bonded bluetooth devices.
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         device_list?.layoutManager = LinearLayoutManager(requireContext())
@@ -76,8 +80,35 @@ class DeviceDiscoverFragment : Fragment() {
         // Provide observers for the ViewModel.
         observeViewModel()
         // fetch the bonded bondedDevices
+
         viewModel.readBondedDevices()
-        // Check for coarse location permission.
+    }
+
+    /**
+     * Notifies that this fragment has a menu options.
+     */
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    /**
+     * Inflates the menu for this fragment.
+     */
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        inflater?.inflate(R.menu.menu_device_discover, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    /**
+     * Detects when an element in the menu gets clicked.
+     */
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.refresh -> refreshDevices()
+            R.id.my_devices -> Unit
+        }
+        return true
     }
 
     /**
@@ -109,9 +140,11 @@ class DeviceDiscoverFragment : Fragment() {
     }
 
     /**
-     * Checks if the COARSE_LOCATION permission is granted, if not, proceeds to request it.
+     * Checks if the COARSE_LOCATION permission is granted.
+     * - If granted, it will start discovering nearby devices.
+     * - If not granted, it will request the permission.
      */
-    private fun requestLocationPermission() {
+    private fun discoverDevices() {
         // Check if the permission is not granted.
         val isDenied =
             checkSelfPermission(
@@ -129,6 +162,17 @@ class DeviceDiscoverFragment : Fragment() {
         } else {
             btAdapter.startDiscovery()
         }
+    }
+
+    /**
+     * Requests the bonded devices again and searches for nearby devices.
+     */
+    private fun refreshDevices() {
+        device_list?.adapter = null // Destroy the adapter.
+        device_list?.invalidate() // Invalidate the list.
+        viewModel.readBondedDevices() // Read the bonded devices again.
+        btAdapter.cancelDiscovery() // Cancel the device discovery.
+        discoverDevices() // Starts discovering nearby devices.
     }
 
     /**
@@ -154,7 +198,7 @@ class DeviceDiscoverFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         requireActivity().registerReceiver(mDeviceFoundReceiver, deviceFoundFilter)
-        requestLocationPermission()
+        discoverDevices()
     }
 
     /**
