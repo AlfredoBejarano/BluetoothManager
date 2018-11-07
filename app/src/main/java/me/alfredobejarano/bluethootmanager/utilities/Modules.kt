@@ -67,7 +67,6 @@ class DeviceRepositoryModule(private val ctx: Context) {
     @Singleton
     fun provideDeviceRepository() =
         DeviceRepository(
-            ctx = ctx,
             adapter = BluetoothAdapter.getDefaultAdapter(),
             dao = AppDatabase.getInstance(ctx).getDeviceDao(),
             service = Injector.component.provideDeviceService(),
