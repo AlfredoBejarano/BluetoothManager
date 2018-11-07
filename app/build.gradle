@@ -39,6 +39,7 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation 'androidx.room:room-runtime:2.1.0-alpha02'
+    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.9.1'
     implementation 'android.arch.navigation:navigation-ui:1.0.0-alpha07'
