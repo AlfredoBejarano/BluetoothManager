@@ -5,8 +5,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import me.alfredobejarano.bluethootmanager.R
+import me.alfredobejarano.bluethootmanager.callback.DeviceDiffCallback
 import me.alfredobejarano.bluethootmanager.data.Device
 import me.alfredobejarano.bluethootmanager.utilities.formatString
 import me.alfredobejarano.bluethootmanager.utilities.fromTimeStamp
@@ -21,7 +23,7 @@ import me.alfredobejarano.bluethootmanager.utilities.fromTimeStamp
  * @since November 06, 2018 - 21:38
  * @version 1.0
  **/
-class DeviceAdapter(private var elements: List<Device>?, private val foundDevices: Boolean) :
+class DeviceAdapter(private var elements: MutableList<Device>?, private val foundDevices: Boolean) :
     RecyclerView.Adapter<DeviceAdapter.DeviceViewHolder>() {
 
     /**
@@ -83,11 +85,17 @@ class DeviceAdapter(private var elements: List<Device>?, private val foundDevice
 
     /**
      * Updates the list of elements.
-     * TODO - Implement DiffUtils here!
      */
     fun updateList(newElements: List<Device>?) {
-        elements = newElements
-        notifyDataSetChanged()
+        // Create a temporary list that will hold both the old and new elements.
+        val tempList = mutableListOf<Device>()
+        tempList.addAll(elements ?: listOf())
+        tempList.addAll(newElements ?: listOf())
+        // Get the result from the difference.
+        val result = DiffUtil.calculateDiff(DeviceDiffCallback(elements, tempList))
+        elements?.addAll(newElements ?: listOf())
+        // Report the updates.
+        result.dispatchUpdatesTo(this)
     }
 
     class DeviceViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
